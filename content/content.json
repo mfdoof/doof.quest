@@ -1,0 +1,118 @@
+{
+  "site": {
+    "name": "Maverick",
+    "handle": "mave@doof",
+    "headline": "Maverick — homelab-trained sysadmin focused on security and automation.",
+    "lead": "I run a Proxmox homelab behind CGNAT, which I segmented, secured and monitor myself, and I've broken and fixed most of it along the way. Now looking for an entry-level IT role, remote or on-site, with a long-term focus on systems and security.",
+    "motd": "Welcome to doof.quest — uptime > ego. logs > guesses.",
+    "links": {
+      "email": "maveealier@gmail.com",
+      "github": "https://github.com/mfdoof",
+      "linkedin": "https://www.linkedin.com/in/mave-alier-5499283b2/"
+    }
+  },
+  "stack": [
+    {
+      "label": "os/",
+      "value": "Linux · macOS · Windows"
+    },
+    {
+      "label": "virt/",
+      "value": "Proxmox · ZFS · LVM"
+    },
+    {
+      "label": "net/",
+      "value": "VLANs · NPM · Pi-hole"
+    },
+    {
+      "label": "monitor/",
+      "value": "Prometheus · Grafana"
+    },
+    {
+      "label": "scripts/",
+      "value": "Bash · Python · Node.js · Java"
+    }
+  ],
+  "projects": [
+    {
+      "slug": "doof-homelab",
+      "title": "doof-homelab",
+      "category": "infra",
+      "perms": "drwxr-xr-x",
+      "date": "2026-04-08",
+      "blurb": "Design, storage layout, VLANs, monitoring.",
+      "stack": [
+        "Proxmox",
+        "ZFS",
+        "Prometheus"
+      ],
+      "image": null,
+      "imageAlt": "Homelab architecture diagram",
+      "link": {
+        "label": "cat README",
+        "href": "/projects/doof-homelab.html"
+      }
+    },
+    {
+      "slug": "password-manager",
+      "title": "password-manager",
+      "category": "security",
+      "perms": "drwx------",
+      "date": "2025-11-07",
+      "blurb": "Desktop vault with a master password. AES-GCM encryption, PBKDF2-SHA256 key derivation, layered OOP design (DAO / service / UI).",
+      "stack": [
+        "Java",
+        "Swing",
+        "MySQL / JDBC"
+      ],
+      "image": null,
+      "imageAlt": "Vault UI with fake data",
+      "link": {
+        "label": "cat README",
+        "href": "/projects/password-manager.html"
+      },
+      "repo": "https://github.com/mfdoof/PasswordManager_OOP"
+    },
+    {
+      "slug": "net-health-monitor",
+      "title": "net-health-monitor",
+      "category": "tools",
+      "perms": "-rwxr-xr-x",
+      "date": "2026-04-13",
+      "blurb": "Dashboard for ping, DNS lookups and port checks across hosts, with local AI diagnostic summaries. Rate limiting, host blacklist and input validation built in.",
+      "stack": [
+        "Python / FastAPI",
+        "React",
+        "Ollama"
+      ],
+      "image": null,
+      "imageAlt": "Status dashboard",
+      "link": {
+        "label": "view on GitHub",
+        "href": "https://github.com/mfdoof/network-health-monitor"
+      },
+      "repo": "https://github.com/mfdoof/network-health-monitor"
+    }
+  ],
+  "notes": [
+    {
+      "slug": "console-outage",
+      "title": "Postmortem: when every console said \"Connecting…\"",
+      "tag": "writeups",
+      "date": "2026-09-09",
+      "pinned": true
+    }
+  ],
+  "about": [
+    "I'm Maverick, a graduating BS Information Technology student at the University of San Carlos in Cebu, Philippines.",
+    "Linux is what got me started. Then I wanted to run my own services and secure my own network, mostly because I wanted to know where my data was going. That turned into doof, a Proxmox server at home with its own VLANs, monitoring and a Cloudflare tunnel, since my ISP doesn't give me a public IP. A lot of what I know came from breaking it and figuring out why.",
+    "I'm looking for an entry-level IT role, remote or on-site. Long term I want to work in systems and security.",
+    "When I'm not at a keyboard, I'm usually playing sports, doing yoga or out hiking."
+  ],
+  "certs": [
+    {
+      "name": "Google IT Support Professional Certificate",
+      "status": "in-progress"
+    }
+  ]
+}
