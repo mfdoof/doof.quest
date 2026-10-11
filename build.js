@@ -258,6 +258,10 @@ function main() {
     certs: certs.map(renderCert).join(''),
   });
 
+  for (const page of ['projects/doof-homelab.html']) {
+    buildFile(page, shared);
+  }
+
   buildFile('projects/index.html', {
     ...shared,
     projects: sortedProjects.map(renderCard).join(''),

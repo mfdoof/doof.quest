@@ -1,0 +1,242 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>doof-homelab · doof.quest</title>
+  <meta name="description" content="doof: a Proxmox homelab behind CGNAT with segmented VLANs, internal HTTPS, Zero Trust SSH and Prometheus monitoring.">
+  <link rel="preload" href="/fonts/JetBrainsMono-Regular.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="/css/style.css">
+  <script src="/js/main.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">skip to content</a>
+
+  <div class="container">
+    <header class="site-header">
+      <a class="prompt" href="/">mave@doof:~$</a>
+      <nav class="site-nav" aria-label="Main">
+        <a href="/projects/" aria-current="page">./projects</a>
+        <a href="/notes/">./notes</a>
+        <a href="/about.html">./about</a>
+        <a href="/resume.pdf">resume.pdf</a>
+        <a href="#contact">./contact</a>
+      </nav>
+    </header>
+
+    <main id="main">
+      <article>
+        <header class="page-head">
+          <p class="crumbs mono small"><a href="/projects/">~/projects</a> / doof-homelab</p>
+          <div class="card-meta">drwxr-xr-x · #infra · started 2026-04-08</div>
+          <h1>doof-homelab/</h1>
+          <p class="lead">A Proxmox server at home that runs my DNS, reverse proxy, photo backups, remote access and monitoring. My ISP puts me behind CGNAT, so everything is reachable without opening a single inbound port.</p>
+          <ul class="tag-row mono small">
+            <li>Proxmox VE</li><li>LXC</li><li>ZFS</li><li>LVM-thin</li><li>VLANs</li><li>Pi-hole</li><li>Nginx Proxy Manager</li><li>Cloudflare Tunnel</li><li>Zero Trust</li><li>Tailscale</li><li>Prometheus</li><li>Grafana</li>
+          </ul>
+        </header>
+
+        <div class="prose">
+
+          <h2 id="overview">$ cat overview</h2>
+          <p>doof started as an old desktop, a small TP-Link router and a switch. The first note in my lab docs says it will be "tiny at first," and it was. Before Proxmox it was a Windows and Hyper-V dual boot. Before that, the data disk belonged to a TrueNAS install I'd abandoned.</p>
+          <p>I wanted to run my own services instead of renting them, and to secure my own network. Mostly, though, I wanted to know where my data was going. Almost everything below came out of that.</p>
+
+          <h2 id="architecture">$ cat architecture</h2>
+          <figure class="diagram">
+            <svg viewBox="0 0 720 470" role="img" aria-labelledby="dg-title dg-desc">
+              <title id="dg-title">doof homelab architecture</title>
+              <desc id="dg-desc">Remote users reach the lab through Cloudflare Access and a tunnel, or through Tailscale. Both lead to the doof Proxmox host, which runs Pi-hole, Nginx Proxy Manager, CasaOS with Immich, the cloudflared connector, the Tailscale router and the monitoring container. LAN clients on separate VLANs use Pi-hole for DNS and reach services through Nginx Proxy Manager.</desc>
+
+              <!-- outside -->
+              <rect class="d-zone" x="10" y="10" width="700" height="96"/>
+              <text class="d-label" x="24" y="32">internet</text>
+              <rect class="d-node" x="40" y="44" width="180" height="46"/>
+              <text class="d-text" x="130" y="72" text-anchor="middle">you, remote</text>
+              <rect class="d-node d-accent" x="270" y="44" width="200" height="46"/>
+              <text class="d-text" x="370" y="66" text-anchor="middle">Cloudflare edge</text>
+              <text class="d-sub" x="370" y="81" text-anchor="middle">Access · one-time PIN</text>
+              <rect class="d-node" x="510" y="44" width="180" height="46"/>
+              <text class="d-text" x="600" y="66" text-anchor="middle">Tailscale</text>
+              <text class="d-sub" x="600" y="81" text-anchor="middle">tailnet DNS → Pi-hole</text>
+
+              <line class="d-line" x1="220" y1="67" x2="270" y2="67"/>
+              <text class="d-sub" x="245" y="60" text-anchor="middle">ssh</text>
+
+              <!-- CGNAT wall -->
+              <line class="d-wall" x1="10" y1="122" x2="710" y2="122"/>
+              <text class="d-sub" x="360" y="140" text-anchor="middle">ISP CGNAT · no public IP · zero inbound ports</text>
+
+              <!-- outbound tunnels -->
+              <line class="d-line d-dash" x1="370" y1="90" x2="370" y2="214"/>
+              <text class="d-sub" x="378" y="190">outbound 443</text>
+              <line class="d-line d-dash" x1="600" y1="90" x2="600" y2="214"/>
+              <text class="d-sub" x="608" y="190">WireGuard</text>
+
+              <!-- doof host -->
+              <rect class="d-zone d-host" x="10" y="156" width="700" height="210"/>
+              <text class="d-label" x="24" y="178">doof · Proxmox VE · server VLAN</text>
+
+              <rect class="d-node" x="40" y="214" width="140" height="56"/>
+              <text class="d-text" x="110" y="238" text-anchor="middle">Pi-hole</text>
+              <text class="d-sub" x="110" y="255" text-anchor="middle">DNS · *.doof.quest</text>
+
+              <rect class="d-node d-accent" x="200" y="214" width="140" height="56"/>
+              <text class="d-text" x="270" y="238" text-anchor="middle">NPM</text>
+              <text class="d-sub" x="270" y="255" text-anchor="middle">wildcard TLS</text>
+
+              <rect class="d-node" x="360" y="214" width="120" height="56"/>
+              <text class="d-text" x="420" y="238" text-anchor="middle">cloudflared</text>
+              <text class="d-sub" x="420" y="255" text-anchor="middle">connector</text>
+
+              <rect class="d-node" x="500" y="214" width="190" height="56"/>
+              <text class="d-text" x="595" y="238" text-anchor="middle">Tailscale</text>
+              <text class="d-sub" x="595" y="255" text-anchor="middle">subnet router</text>
+
+              <rect class="d-node" x="40" y="290" width="200" height="56"/>
+              <text class="d-text" x="140" y="314" text-anchor="middle">CasaOS · Immich</text>
+              <text class="d-sub" x="140" y="331" text-anchor="middle">photos on ZFS</text>
+
+              <rect class="d-node" x="260" y="290" width="220" height="56"/>
+              <text class="d-text" x="370" y="314" text-anchor="middle">doof-watcher</text>
+              <text class="d-sub" x="370" y="331" text-anchor="middle">Prometheus · Grafana · alerts</text>
+
+              <rect class="d-node" x="500" y="290" width="190" height="56"/>
+              <text class="d-text" x="595" y="314" text-anchor="middle">storage</text>
+              <text class="d-sub" x="595" y="331" text-anchor="middle">NVMe · ZFS · LVM-thin</text>
+
+              <line class="d-line" x1="200" y1="242" x2="180" y2="242"/>
+              <line class="d-line" x1="270" y1="270" x2="270" y2="290"/>
+
+              <!-- LAN -->
+              <rect class="d-zone" x="10" y="382" width="700" height="78"/>
+              <text class="d-label" x="24" y="404">LAN · ER605 ACLs between VLANs</text>
+              <rect class="d-node" x="40" y="414" width="190" height="34"/>
+              <text class="d-text" x="135" y="436" text-anchor="middle">admin VLAN</text>
+              <rect class="d-node" x="265" y="414" width="190" height="34"/>
+              <text class="d-text" x="360" y="436" text-anchor="middle">guest / Wi-Fi VLAN</text>
+              <rect class="d-node" x="490" y="414" width="190" height="34"/>
+              <text class="d-text" x="585" y="436" text-anchor="middle">IoT VLAN</text>
+              <polyline class="d-line d-dash" points="250,414 250,280 110,280 110,270"/>
+              <text class="d-sub" x="258" y="377">DNS :53 only</text>
+            </svg>
+          </figure>
+
+          <table>
+            <thead><tr><th>Service</th><th>Runs as</th><th>Why it's there</th></tr></thead>
+            <tbody>
+              <tr><td>Pi-hole v6</td><td>LXC</td><td>DNS for every VLAN, ~760k blocked domains, and a log of what's talking to what</td></tr>
+              <tr><td>Nginx Proxy Manager</td><td>LXC (Docker)</td><td>One wildcard certificate; routes each <code>*.doof.quest</code> name to its backend</td></tr>
+              <tr><td>cloudflared</td><td>LXC</td><td>Outbound tunnel for SSH when Tailscale is blocked</td></tr>
+              <tr><td>Tailscale</td><td>LXC</td><td>Subnet router so my devices reach the LAN from anywhere</td></tr>
+              <tr><td>CasaOS + Immich</td><td>LXC (Docker)</td><td>My own Google Photos, with the library on ZFS</td></tr>
+              <tr><td>doof-watcher</td><td>LXC</td><td>Prometheus, exporters, Grafana and Discord alerts</td></tr>
+            </tbody>
+          </table>
+
+          <h2 id="network">$ cat network</h2>
+          <p>The network runs on an Omada stack (ER605 router, managed switch, wall AP) split into Admin, Server, Guest, and IoT VLANs. The default VLAN only holds the router.</p>
+          <p>The ACLs needed a full rebuild. I'd written them assuming the router tracked connections between LAN segments, and it doesn't: LAN-to-LAN rules on the ER605 are stateless, so a one-way permit silently broke return traffic. The rebuilt set has explicit permits in both directions where needed, lets guest and IoT devices reach Pi-hole on port 53 and nothing else, and ends with a blanket guest-to-LAN deny. Pi-hole is targeted with a /32 IP group, not a whole subnet.</p>
+          <p>I learned one DNS lesson from my own laptop. The router was handing out Pi-hole plus 1.1.1.1 as a fallback, and macOS quietly preferred the fallback, so its queries never touched Pi-hole. DHCP now hands out Pi-hole only.</p>
+
+          <h2 id="https">$ cat internal-https</h2>
+          <p>Every service gets a real address like <code>https://&lt;service&gt;.doof.quest</code> with a valid padlock, on the LAN and away from home, and nothing listens on the internet. Three pieces make that work.</p>
+          <ul>
+            <li>One Let's Encrypt wildcard certificate for <code>*.doof.quest</code>, validated through a Cloudflare DNS-01 challenge. The API token can edit DNS on that one zone and nothing else.</li>
+            <li>Pi-hole answers every <code>*.doof.quest</code> lookup with the proxy's address (split-horizon DNS), so public DNS never holds internal records.</li>
+            <li>Tailscale advertises the LAN and uses Pi-hole as the tailnet's resolver, which is why the same addresses work on cellular.</li>
+          </ul>
+
+          <h2 id="remote-ssh">$ cat remote-ssh</h2>
+          <p>Tailscale is blocked on my school's Wi-Fi, and CGNAT rules out port forwarding. So SSH goes through a Cloudflare Tunnel: a small connector container makes an outbound HTTPS connection, and SSH rides back through it on its own hostname.</p>
+          <ul>
+            <li>A Cloudflare Access app sits in front. It sends a one-time PIN, and the policy allows exactly one email address. I created the Access app before the route existed, so the hostname was never open even for a minute.</li>
+            <li>The Proxmox web UI isn't published through the tunnel. Only SSH is.</li>
+            <li>The host accepts keys only. When I checked with <code>sshd -T</code>, password login was still on: the line in <code>sshd_config</code> was commented out, which means OpenSSH's default of "yes" applied. A drop-in file fixed it, and I verified the effective config, not just the file.</li>
+            <li>At home, Pi-hole's wildcard sent the SSH hostname to the proxy, which can't carry SSH. A more specific rule now sends that one name upstream.</li>
+          </ul>
+
+          <h2 id="storage">$ cat storage</h2>
+          <ul>
+            <li>The NVMe holds Proxmox, every service container, and the databases that need speed.</li>
+            <li>A ZFS pool on a 1 TB HDD has LZ4 compression and one dataset per service. Immich's photo library lives there, while its Postgres database stays on the SSD. I take a snapshot before every upgrade.</li>
+            <li>A 2 TB SMR drive is split into an ext4 directory and an LVM-thin pool for VMs I rarely run. SMR drives handle heavy random writes badly, so nothing busy goes there.</li>
+          </ul>
+          <p>Two things confused me for a while. Unprivileged containers map their root user to UID 100000 on the host, so a dataset created by host root looks read-only from inside until you <code>chown</code> it into that range. And ZFS shows about 899 GiB on a 930 GiB disk because it keeps space for metadata and a safety reserve. That's also why my dataset quotas are 445G instead of 450G.</p>
+
+          <h2 id="monitoring">$ cat monitoring</h2>
+          <p>A single container runs Prometheus, which scrapes every 15 seconds: node_exporter for the host's hardware and OS, and pve-exporter for per-guest stats through a read-only Proxmox API user. Grafana sits behind the proxy with HTTPS. Everything else listens on localhost, and the host's exporter port is firewalled to the monitoring container alone. <code>ss -tlnp</code> confirms it.</p>
+          <p>Alerts go to a private Discord channel:</p>
+          <table>
+            <thead><tr><th>Alert</th><th>Fires when</th></tr></thead>
+            <tbody>
+              <tr><td>Target down</td><td>any scrape target is down for 2 min</td></tr>
+              <tr><td>Storage filling</td><td>any Proxmox storage is over 85%</td></tr>
+              <tr><td>Root disk filling</td><td>root filesystem is over 85%</td></tr>
+              <tr><td>CPU too hot</td><td>CPU is over 85°C for 5 min</td></tr>
+              <tr><td>Memory pressure</td><td>RAM is over 90% for 10 min</td></tr>
+              <tr><td>Guest down</td><td>a VM or container set to autostart isn't running</td></tr>
+            </tbody>
+          </table>
+          <p>I gave the messages a wizard theme ("A disturbance stirs in the realm of doof") because plain alerts are boring, and each one's description doubles as a short runbook. I tested every rule by stopping an exporter and watching it go pending, firing, then resolved. The dashboards already caught real things: one storage pool sitting near 80%, HDD I/O saturation spikes, and guests promised more RAM than the host has.</p>
+
+          <h2 id="incidents">$ cat incidents</h2>
+          <ul>
+            <li><strong>Three reboots in one day.</strong> I suspected an intrusion first. SSH logs, cron, scheduled jobs and sessions were all clean, and so were RAM, SMART and kernel errors. The logs just stopped mid-write with no shutdown, which points at hardware. The cause was a faulty UPS that caused brownouts instead of covering them. The fixes also turned up containers without autostart and a firewall rule that existed but was never enabled.</li>
+            <li><strong>Every web console stuck on "Connecting…".</strong> A DNS record I'd added skipped the proxy and broke the console's WebSocket. <a href="/notes/console-outage.html">Full postmortem →</a></li>
+            <li><strong>The server wouldn't boot.</strong> An HDD mount in <code>fstab</code> had no <code>nofail</code>. I recovered through an <code>init=/bin/bash</code> shell and added a device timeout.</li>
+          </ul>
+
+          <h2 id="lessons">$ cat lessons</h2>
+          <ul>
+            <li>Check the effective state, not the config file: <code>sshd -T</code>, <code>ss -tlnp</code>, <code>promtool check config</code>.</li>
+            <li>A firewall rule isn't done until it's enabled and tested.</li>
+            <li>Least privilege everywhere: one-zone API tokens, a read-only monitoring user, a one-address access policy.</li>
+            <li><code>systemctl status</code> tells you that something failed. <code>journalctl</code> tells you why.</li>
+            <li>I document everything. Each part of doof has its own doc with numbered troubleshooting tickets (symptom, cause, fix).</li>
+          </ul>
+
+          <h2 id="next">$ cat todo</h2>
+          <ul>
+            <li>Replace the UPS.</li>
+            <li>Ship SSH logs to Loki and alert on them.</li>
+            <li>Finish the IoT VLAN rollout, and stand up a shared Proxmox box for friends on its own isolated VLAN.</li>
+          </ul>
+
+        </div>
+      </article>
+    </main>
+
+    <footer class="site-footer" id="contact">
+      <nav aria-label="Contact">
+        <!-- build:footer-links --><a href="mailto:maveealier@gmail.com">mail</a>
+<a href="https://github.com/mfdoof" rel="noopener">github</a>
+<a href="https://www.linkedin.com/in/mave-alier-5499283b2/" rel="noopener">linkedin</a>
+<!-- /build:footer-links -->
+      </nav>
+      <nav aria-label="Site">
+        <a href="/notes/how-this-site-works.html">how-this-site-works.md</a>
+        <a href="/shell/">try the shell &gt;_</a>
+      </nav>
+    </footer>
+  </div>
+
+  <div class="statusbar">
+    <nav class="status-left" aria-label="Windows">
+      [doof]
+      <a href="/">0:home</a>
+      <a href="/projects/" aria-current="page">1:projects*</a>
+      <a href="/notes/">2:notes</a>
+      <a href="/about.html">3:about</a>
+    </nav>
+    <div class="status-right">
+      <span class="status-stats">
+        lab up <span data-uptime>—</span> ·
+        <!-- build:note-count -->1 note
+<!-- /build:note-count --> ·
+      </span>
+      <button class="theme-toggle" type="button" data-theme-toggle aria-label="Toggle light or dark theme">theme</button>
+    </div>
+  </div>
+</body>
+</html>
