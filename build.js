@@ -238,7 +238,7 @@ function main() {
   const sortedNotes = [...notes].sort((a, b) => (b.pinned === true) - (a.pinned === true) || byDate(a, b));
 
   const shared = {
-    'note-count': esc(String(notes.length)),
+    'note-count': `${notes.length} ${notes.length === 1 ? 'note' : 'notes'}`,
     'footer-links': [
       `<a href="mailto:${esc(site.links.email)}">mail</a>`,
       `<a href="${esc(site.links.github)}" rel="noopener">github</a>`,

@@ -80,6 +80,7 @@
 /* ---------- Reset / base ---------- */
 *, *::before, *::after { box-sizing: border-box; }
 * { margin: 0; }
+[hidden] { display: none !important; }
 
 html { -webkit-text-size-adjust: 100%; }
 
@@ -222,7 +223,7 @@ pre {
 /* ---------- Stack grid ---------- */
 .stack-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
   gap: 16px;
   margin-top: 16px;
 }
@@ -288,6 +289,7 @@ pre {
 
 /* ---------- About + certs ---------- */
 .split { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; }
+.split h2 { margin-bottom: 16px; }
 .cert-list { list-style: none; padding: 0; display: grid; gap: 12px; margin-top: 16px; }
 .cert-list li {
   border: 1px dashed var(--border);
@@ -327,6 +329,8 @@ pre {
   white-space: nowrap; overflow: hidden;
 }
 .statusbar a { color: inherit; text-decoration: none; }
+.statusbar .theme-toggle { color: inherit; border-color: currentColor; padding: 0 8px; font-size: 12px; }
+.statusbar .theme-toggle:hover { color: inherit; border-color: currentColor; text-decoration: underline; }
 .statusbar a:hover, .statusbar a[aria-current="page"] { text-decoration: underline; }
 
 /* ---------- Responsive ---------- */
@@ -335,7 +339,8 @@ pre {
   .hero { grid-template-columns: 1fr; margin-top: 40px; }
   .hero-figure { min-height: 200px; }
   .split { grid-template-columns: 1fr; }
-  .statusbar .status-right { display: none; }
+  .statusbar .status-stats { display: none; }
+  .statusbar .status-left a:not([aria-current]) { display: none; }
 }
 
 /* ---------- Motion ---------- */

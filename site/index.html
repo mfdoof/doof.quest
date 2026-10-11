@@ -1,0 +1,215 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Maverick · doof.quest</title>
+  <meta name="description" content="Maverick, IT and security portfolio: homelab, projects and troubleshooting write-ups.">
+  <link rel="preload" href="/fonts/JetBrainsMono-Regular.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="/css/style.css">
+  <script src="/js/main.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">skip to content</a>
+
+  <div class="container">
+    <header class="site-header">
+      <a class="prompt" href="/">mave@doof:~$</a>
+      <nav class="site-nav" aria-label="Main">
+        <a href="/projects/">./projects</a>
+        <a href="/notes/">./notes</a>
+        <a href="/about.html">./about</a>
+        <a href="/resume.pdf">resume.pdf</a>
+        <a href="#contact">./contact</a>
+      </nav>
+    </header>
+
+    <main id="main">
+
+      <!-- ===== hero ===== -->
+      <section class="hero">
+        <div>
+          <div class="motd">
+            <!-- build:motd -->Welcome to doof.quest — uptime &gt; ego. logs &gt; guesses.
+<!-- /build:motd --><br>
+            Last login: <span data-last-login>Sun Oct 11 09:14</span> from tty1
+          </div>
+
+          <p class="cmd">whoami<span class="cur" aria-hidden="true"></span></p>
+          <h1>
+            <!-- build:headline -->Maverick — homelab-trained sysadmin focused on security and automation.
+<!-- /build:headline -->
+          </h1>
+          <p class="lead">
+            <!-- build:lead -->I run a Proxmox homelab behind CGNAT, which I segmented, secured and monitor myself, and I&#39;ve broken and fixed most of it along the way. Now looking for an entry-level IT role, remote or on-site, with a long-term focus on systems and security.
+<!-- /build:lead -->
+          </p>
+
+          <div class="btn-row">
+            <a class="btn btn--primary" href="/projects/">cd projects</a>
+            <a class="btn btn--ghost" href="/resume.pdf">cat resume.pdf</a>
+          </div>
+        </div>
+
+        <figure class="hero-figure">
+          <!-- swap for <img src="/img/homelab-diagram.svg" alt="…"> when ready. Names only, no IPs. -->
+          <figcaption>[ Homelab architecture diagram<br>doof · VLANs · NPM · Pi-hole ]</figcaption>
+        </figure>
+      </section>
+
+      <!-- ===== stack ===== -->
+      <section class="section" aria-labelledby="stack-h">
+        <p class="cmd" id="stack-h">cat /etc/stack</p>
+        <div class="stack-grid">
+          <!-- build:stack -->
+<div class="stack-item">
+  <div class="label">os/</div>
+  <div class="value">Linux · macOS · Windows</div>
+</div>
+<div class="stack-item">
+  <div class="label">virt/</div>
+  <div class="value">Proxmox · ZFS · LVM</div>
+</div>
+<div class="stack-item">
+  <div class="label">net/</div>
+  <div class="value">VLANs · NPM · Pi-hole</div>
+</div>
+<div class="stack-item">
+  <div class="label">monitor/</div>
+  <div class="value">Prometheus · Grafana</div>
+</div>
+<div class="stack-item">
+  <div class="label">scripts/</div>
+  <div class="value">Bash · Python · Node.js · Java</div>
+</div>
+<!-- /build:stack -->
+        </div>
+      </section>
+
+      <!-- ===== projects ===== -->
+      <section class="section" aria-labelledby="projects-h">
+        <div class="section-head">
+          <h2 id="projects-h">~/projects</h2>
+          <a href="/projects/">ls -la ~/projects →</a>
+        </div>
+
+        <!-- filter tabs: hidden until main.js enables them (site works without JS) -->
+        <div class="tabs" data-filter hidden>
+          <button class="tab is-active" type="button" data-filter-value="all" aria-pressed="true">all</button>
+          <button class="tab" type="button" data-filter-value="infra" aria-pressed="false">infra/</button>
+          <button class="tab" type="button" data-filter-value="security" aria-pressed="false">security/</button>
+          <button class="tab" type="button" data-filter-value="tools" aria-pressed="false">tools/</button>
+          <button class="tab" type="button" data-filter-value="writeups" aria-pressed="false">writeups/</button>
+        </div>
+
+        <div class="card-grid">
+          <!-- build:projects -->
+<article class="card" data-category="tools">
+  <div class="card-media">[ Status dashboard ]</div>
+  <div class="card-body">
+    <div class="card-meta">-rwxr-xr-x · #tools · 2026-04-13</div>
+    <h3><a href="https://github.com/mfdoof/network-health-monitor" rel="noopener">net-health-monitor/</a></h3>
+    <p>Dashboard for ping, DNS lookups and port checks across hosts, with local AI diagnostic summaries. Rate limiting, host blacklist and input validation built in.</p>
+    <div class="card-stack">Python / FastAPI · React · Ollama</div>
+    <a class="card-link" href="https://github.com/mfdoof/network-health-monitor" rel="noopener">view on GitHub →</a>
+  </div>
+</article>
+<article class="card" data-category="infra">
+  <div class="card-media">[ Homelab architecture diagram ]</div>
+  <div class="card-body">
+    <div class="card-meta">drwxr-xr-x · #infra · 2026-04-08</div>
+    <h3><a href="/projects/doof-homelab.html">doof-homelab/</a></h3>
+    <p>Design, storage layout, VLANs, monitoring.</p>
+    <div class="card-stack">Proxmox · ZFS · Prometheus</div>
+    <a class="card-link" href="/projects/doof-homelab.html">cat README →</a>
+  </div>
+</article>
+<article class="card" data-category="security">
+  <div class="card-media">[ Vault UI with fake data ]</div>
+  <div class="card-body">
+    <div class="card-meta">drwx------ · #security · 2025-11-07</div>
+    <h3><a href="/projects/password-manager.html">password-manager/</a></h3>
+    <p>Desktop vault with a master password. AES-GCM encryption, PBKDF2-SHA256 key derivation, layered OOP design (DAO / service / UI).</p>
+    <div class="card-stack">Java · Swing · MySQL / JDBC</div>
+    <a class="card-link" href="/projects/password-manager.html">cat README →</a>
+  </div>
+</article>
+<!-- /build:projects -->
+        </div>
+      </section>
+
+      <!-- ===== notes ===== -->
+      <section class="section" aria-labelledby="notes-h">
+        <div class="section-head">
+          <h2 id="notes-h">~/notes</h2>
+          <a href="/notes/">tail -n 20 →</a>
+        </div>
+        <ul class="note-list">
+          <!-- build:notes -->
+<li>
+  <a href="/notes/console-outage.html" class="pinned">Postmortem: when every console said &quot;Connecting…&quot;</a>
+  <span class="note-meta">#writeups · 2026-09-09</span>
+</li>
+<!-- /build:notes -->
+        </ul>
+      </section>
+
+      <!-- ===== about + certs ===== -->
+      <section class="section split">
+        <div>
+          <h2>~/about</h2>
+          <div class="prose about-text">
+            <!-- build:about -->
+<p>I&#39;m Maverick, a graduating BS Information Technology student at the University of San Carlos in Cebu, Philippines.</p>
+<p>Linux is what got me started. Then I wanted to run my own services and secure my own network, mostly because I wanted to know where my data was going. That turned into doof, a Proxmox server at home with its own VLANs, monitoring and a Cloudflare tunnel, since my ISP doesn&#39;t give me a public IP. A lot of what I know came from breaking it and figuring out why.</p>
+<p>I&#39;m looking for an entry-level IT role, remote or on-site. Long term I want to work in systems and security.</p>
+<p>When I&#39;m not at a keyboard, I&#39;m usually playing sports, doing yoga or out hiking.</p>
+<!-- /build:about -->
+          </div>
+        </div>
+        <div>
+          <h2>~/certs</h2>
+          <ul class="cert-list">
+            <!-- build:certs -->
+<li>Google IT Support Professional Certificate — in progress</li>
+<!-- /build:certs -->
+          </ul>
+        </div>
+      </section>
+
+    </main>
+
+    <footer class="site-footer" id="contact">
+      <nav aria-label="Contact">
+        <!-- build:footer-links --><a href="mailto:maveealier@gmail.com">mail</a>
+<a href="https://github.com/mfdoof" rel="noopener">github</a>
+<a href="https://www.linkedin.com/in/mave-alier-5499283b2/" rel="noopener">linkedin</a>
+<!-- /build:footer-links -->
+      </nav>
+      <nav aria-label="Site">
+        <a href="/notes/how-this-site-works.html">how-this-site-works.md</a>
+        <a href="/shell/">try the shell &gt;_</a>
+      </nav>
+    </footer>
+  </div>
+
+  <!-- ===== tmux-style status bar ===== -->
+  <div class="statusbar">
+    <nav class="status-left" aria-label="Windows">
+      [doof]
+      <a href="/" aria-current="page">0:home*</a>
+      <a href="/projects/">1:projects</a>
+      <a href="/notes/">2:notes</a>
+      <a href="/about.html">3:about</a>
+    </nav>
+    <div class="status-right">
+      <span class="status-stats">
+        lab up <span data-uptime>—</span> ·
+        <!-- build:note-count -->1 note
+<!-- /build:note-count --> ·
+      </span>
+      <button class="theme-toggle" type="button" data-theme-toggle aria-label="Toggle light or dark theme">theme</button>
+    </div>
+  </div>
+</body>
+</html>
