@@ -79,17 +79,17 @@
       "category": "tools",
       "perms": "-rwxr-xr-x",
       "date": "2026-04-13",
-      "blurb": "Dashboard for ping, DNS lookups and port checks across hosts, with local AI diagnostic summaries. Rate limiting, host blacklist and input validation built in.",
+      "blurb": "Self-hosted ping, port scan and DNS tool with LLM summaries. Private targets blocked by resolved IP, scan data redacted before the LLM, 102 tests.",
       "stack": [
         "Python / FastAPI",
         "React",
-        "Ollama"
+        "Docker"
       ],
-      "image": null,
-      "imageAlt": "Status dashboard",
+      "image": "/img/nhm-dashboard.webp",
+      "imageAlt": "Network Health Monitor dashboard showing ping, port scan and AI diagnostic results",
       "link": {
-        "label": "view on GitHub",
-        "href": "https://github.com/mfdoof/network-health-monitor"
+        "label": "cat README",
+        "href": "/projects/net-health-monitor.html"
       },
       "repo": "https://github.com/mfdoof/network-health-monitor"
     }

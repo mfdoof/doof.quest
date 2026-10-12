@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>net-health-monitor · doof.quest</title>
+  <meta name="description" content="Network Health Monitor: an open-source, self-hosted tool for ping, port scans and DNS lookups with LLM diagnostic summaries, built to resist abuse and to keep scan data away from the LLM.">
+  <link rel="preload" href="/fonts/JetBrainsMono-Regular.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="/css/style.css">
+  <script src="/js/main.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">skip to content</a>
+
+  <div class="container">
+    <header class="site-header">
+      <a class="prompt" href="/">mave@doof:~$</a>
+      <nav class="site-nav" aria-label="Main">
+        <a href="/projects/" aria-current="page">./projects</a>
+        <a href="/notes/">./notes</a>
+        <a href="/about.html">./about</a>
+        <a href="/resume.pdf">resume.pdf</a>
+        <a href="#contact">./contact</a>
+      </nav>
+    </header>
+
+    <main id="main">
+      <article>
+        <header class="page-head">
+          <p class="crumbs mono small"><a href="/projects/">~/projects</a> / net-health-monitor</p>
+          <div class="card-meta">-rwxr-xr-x · #tools · started 2026-04-13 · MIT</div>
+          <h1>net-health-monitor/</h1>
+          <p class="lead">A self-hosted dashboard that pings hosts, scans a few TCP ports, runs DNS lookups and asks an LLM to explain what it found. It began as a public demo. I pulled it off the internet and rebuilt it as a local tool, because anything that scans on request is easy to abuse.</p>
+          <ul class="tag-row mono small">
+            <li>Python</li><li>FastAPI</li><li>Pydantic</li><li>React</li><li>Vite</li><li>Docker Compose</li><li>nginx</li><li>pytest</li><li>GitHub Actions</li>
+          </ul>
+          <div class="btn-row">
+            <a class="btn btn--primary" href="https://github.com/mfdoof/network-health-monitor" rel="noopener">view on GitHub</a>
+            <a class="btn btn--ghost" href="https://github.com/mfdoof/network-health-monitor/blob/main/SECURITY.md" rel="noopener">cat SECURITY.md</a>
+          </div>
+        </header>
+
+        <div class="prose">
+
+          <figure class="diagram">
+            <img src="/img/nhm-dashboard.webp" width="1600" height="928" loading="lazy" alt="Network Health Monitor dashboard after checking google.com: ping shows 15.7 ms latency with no packet loss, the port scan shows 80 and 443 open and 22 closed, and the AI diagnostic panel summarizes the results and suggests confirming only the intended web services are listening.">
+            <figcaption>Ping, scan and AI summary for a public host. Summaries come from Groq here.</figcaption>
+          </figure>
+
+          <h2 id="features">$ cat features</h2>
+          <ul>
+            <li>Ping with latency and packet loss.</li>
+            <li>TCP connect scan of up to 20 chosen ports per host.</li>
+            <li>DNS lookups: A, AAAA, MX and NS for names, PTR for IPs.</li>
+            <li>Diagnostic summaries from any OpenAI-compatible API. Groq is the default, and a local Ollama works too if nothing should leave the machine.</li>
+          </ul>
+
+          <h2 id="story">$ cat history</h2>
+          <p>The first version ran on a public web server in my homelab, with a model on my own GPU writing the summaries. It worked as a demo, but it had three problems. A public form that scans any target is a free tool for whoever finds it. My ISP puts me behind CGNAT, so everything went through a tunnel. And one GPU meant one request at a time, so a second visitor just waited.</p>
+          <p>So I dropped public hosting and the GPU setup. The web server VM is gone, and the app now talks to any OpenAI-compatible API. It's open source, and the intended way to run it is on your own machine or network.</p>
+
+          <h2 id="security">$ cat security-model</h2>
+          <table>
+            <thead><tr><th>Risk</th><th>What stops it</th></tr></thead>
+            <tbody>
+              <tr><td>Scanning internal or cloud-metadata addresses</td><td>Targets are checked by resolved IP, not by name. Private, loopback, link-local, CGNAT and reserved ranges are blocked by default if any resolved address matches</td></tr>
+              <tr><td>DNS rebinding</td><td>The name is resolved again at scan time and the already-checked IP is the one that gets scanned</td></tr>
+              <tr><td>Scan data leaking to a third-party LLM</td><td>Every IP and hostname is swapped for a placeholder like <code>IP_1</code> before the prompt is sent, then swapped back in the reply</td></tr>
+              <tr><td>Prompt stuffing through the API</td><td>DNS analysis takes only a target and re-runs the lookup on the server, so no client-supplied text reaches the prompt</td></tr>
+              <tr><td>Malformed or oversized input</td><td>Pydantic validates every request body, and bodies over 1 KB are rejected</td></tr>
+              <tr><td>Command injection through ping</td><td>Ping runs as an argument list with no shell</td></tr>
+              <tr><td>One client hogging it</td><td>Per-client rate limits: 10/min for scans, 5/min for AI analysis. Behind a proxy, only that proxy's forwarded address is trusted</td></tr>
+            </tbody>
+          </table>
+          <p>There is no login, and the README says so plainly: anyone who can reach it can scan with it. That's why it stays on localhost, a LAN or a VPN.</p>
+
+          <h2 id="homelab">$ cat deploy/homelab</h2>
+          <p>My own copy runs on doof, my Proxmox server:</p>
+          <ul>
+            <li>An unprivileged LXC container running Docker Compose: the API plus an nginx container for the frontend.</li>
+            <li>Nginx Proxy Manager in front with a TLS certificate. The Proxmox firewall lets only the proxy reach the app's port.</li>
+            <li>Reachable from my LAN and over VPN only. No tunnel route, nothing public.</li>
+            <li>Private targets are allowed on this instance, since scanning my own servers is the point.</li>
+          </ul>
+          <p>One gotcha: ping failed inside the container at first. Unprivileged ICMP sockets depend on <code>ping_group_range</code>, and its default range didn't fit the container's mapped IDs. Narrowing it to the container's range fixed it.</p>
+
+          <h2 id="engineering">$ cat engineering</h2>
+          <ul>
+            <li>102 pytest tests covering target blocking, rebinding, redaction, rate limits and the LLM client.</li>
+            <li>One GitHub Actions workflow with three parallel jobs: the API (ruff, pip-audit, pytest), the frontend (lint, npm audit, build) and a Docker build.</li>
+            <li>Configured entirely through <code>.env</code>, with safe defaults when a setting is missing.</li>
+            <li>Security reports go through GitHub private vulnerability reporting.</li>
+          </ul>
+
+          <h2 id="limits">$ cat known-limits</h2>
+          <ul>
+            <li>Hosts and results live in memory and are gone after a restart.</li>
+            <li>Ping output is parsed for Linux and macOS only.</li>
+            <li>No user accounts, so access control is whatever the network gives you.</li>
+          </ul>
+
+        </div>
+      </article>
+    </main>
+
+    <footer class="site-footer" id="contact">
+      <nav aria-label="Contact">
+        <!-- build:footer-links --><a href="mailto:maveealier@gmail.com">mail</a>
+<a href="https://github.com/mfdoof" rel="noopener">github</a>
+<a href="https://www.linkedin.com/in/mave-alier-5499283b2/" rel="noopener">linkedin</a>
+<!-- /build:footer-links -->
+      </nav>
+      <nav aria-label="Site">
+        <a href="/notes/how-this-site-works.html">how-this-site-works.md</a>
+        <a href="/shell/">try the shell &gt;_</a>
+      </nav>
+    </footer>
+  </div>
+
+  <div class="statusbar">
+    <nav class="status-left" aria-label="Windows">
+      [doof]
+      <a href="/">0:home</a>
+      <a href="/projects/" aria-current="page">1:projects*</a>
+      <a href="/notes/">2:notes</a>
+      <a href="/about.html">3:about</a>
+    </nav>
+    <div class="status-right">
+      <span class="status-stats">
+        lab up <span data-uptime>—</span> ·
+        <!-- build:note-count -->1 note
+<!-- /build:note-count --> ·
+      </span>
+      <button class="theme-toggle" type="button" data-theme-toggle aria-label="Toggle light or dark theme">theme</button>
+    </div>
+  </div>
+</body>
+</html>
