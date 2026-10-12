@@ -59,14 +59,14 @@
       "category": "security",
       "perms": "drwx------",
       "date": "2025-11-07",
-      "blurb": "Desktop vault with a master password. AES-GCM encryption, PBKDF2-SHA256 key derivation, layered OOP design (DAO / service / UI).",
+      "blurb": "DOOF Vault: a terminal password manager rebuilt around a threat model. Argon2id, HKDF and AES-256-GCM, decrypt on demand, 271 tests and checksummed releases.",
       "stack": [
         "Java",
-        "Swing",
-        "MySQL / JDBC"
+        "SQLite",
+        "Argon2id / AES-GCM"
       ],
       "image": null,
-      "imageAlt": "Vault UI with fake data",
+      "imageAlt": "DOOF Vault key hierarchy",
       "link": {
         "label": "cat README",
         "href": "/projects/password-manager.html"

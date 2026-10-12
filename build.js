@@ -258,7 +258,7 @@ function main() {
     certs: certs.map(renderCert).join(''),
   });
 
-  for (const page of ['projects/doof-homelab.html']) {
+  for (const page of ['projects/doof-homelab.html', 'projects/password-manager.html']) {
     buildFile(page, shared);
   }
 
