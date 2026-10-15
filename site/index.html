@@ -51,9 +51,48 @@
           </div>
         </div>
 
-        <figure class="hero-figure">
-          <!-- swap for <img src="/img/homelab-diagram.svg" alt="…"> when ready. Names only, no IPs. -->
-          <figcaption>[ Homelab architecture diagram<br>doof · VLANs · NPM · Pi-hole ]</figcaption>
+        <figure class="hero-figure diagram">
+          <a href="/projects/doof-homelab.html" class="hero-diagram-link" aria-label="doof homelab architecture, open the full write-up">
+            <svg viewBox="0 0 400 380" role="img" aria-labelledby="hd-title hd-desc">
+              <title id="hd-title">doof homelab, simplified</title>
+              <desc id="hd-desc">Remote access comes in through Cloudflare or Tailscale over outbound-only connections, since the ISP uses CGNAT. Both reach the doof Proxmox host, which runs Pi-hole, Nginx Proxy Manager, self-hosted apps and monitoring. Home devices sit on separate VLANs.</desc>
+
+              <rect class="d-zone" x="6" y="6" width="388" height="70"/>
+              <text class="d-label" x="18" y="26">internet</text>
+              <rect class="d-node d-accent" x="30" y="34" width="150" height="32"/>
+              <text class="d-text" x="105" y="55" text-anchor="middle">Cloudflare</text>
+              <rect class="d-node" x="220" y="34" width="150" height="32"/>
+              <text class="d-text" x="295" y="55" text-anchor="middle">Tailscale</text>
+
+              <line class="d-wall" x1="6" y1="92" x2="394" y2="92"/>
+              <text class="d-sub" x="200" y="110" text-anchor="middle">CGNAT · zero inbound ports</text>
+
+              <line class="d-line d-dash" x1="105" y1="66" x2="105" y2="158"/>
+              <line class="d-line d-dash" x1="295" y1="66" x2="295" y2="158"/>
+
+              <rect class="d-zone d-host" x="6" y="124" width="388" height="152"/>
+              <text class="d-label" x="18" y="144">doof · Proxmox</text>
+              <rect class="d-node" x="30" y="158" width="150" height="40"/>
+              <text class="d-text" x="105" y="183" text-anchor="middle">NPM · TLS</text>
+              <rect class="d-node" x="220" y="158" width="150" height="40"/>
+              <text class="d-text" x="295" y="183" text-anchor="middle">Pi-hole DNS</text>
+              <rect class="d-node" x="30" y="218" width="150" height="40"/>
+              <text class="d-text" x="105" y="243" text-anchor="middle">apps · ZFS</text>
+              <rect class="d-node d-accent" x="220" y="218" width="150" height="40"/>
+              <text class="d-text" x="295" y="243" text-anchor="middle">Prometheus</text>
+              <line class="d-line" x1="105" y1="198" x2="105" y2="218"/>
+
+              <rect class="d-zone" x="6" y="292" width="388" height="82"/>
+              <text class="d-label" x="18" y="312">LAN · VLANs + ACLs</text>
+              <rect class="d-node" x="22" y="324" width="110" height="36"/>
+              <text class="d-text" x="77" y="347" text-anchor="middle">admin</text>
+              <rect class="d-node" x="145" y="324" width="110" height="36"/>
+              <text class="d-text" x="200" y="347" text-anchor="middle">guest</text>
+              <rect class="d-node" x="268" y="324" width="110" height="36"/>
+              <text class="d-text" x="323" y="347" text-anchor="middle">IoT</text>
+            </svg>
+          </a>
+          <figcaption><a href="/projects/doof-homelab.html">full diagram →</a></figcaption>
         </figure>
       </section>
 
@@ -115,7 +154,26 @@
   </div>
 </article>
 <article class="card" data-category="infra">
-  <div class="card-media">[ Homelab architecture diagram ]</div>
+  <div class="card-media card-media--svg"><svg viewBox="0 0 400 200" aria-hidden="true" focusable="false">
+  <rect class="d-node d-accent" x="40" y="16" width="140" height="30"/>
+  <text class="d-text" x="110" y="36" text-anchor="middle">Cloudflare</text>
+  <rect class="d-node" x="220" y="16" width="140" height="30"/>
+  <text class="d-text" x="290" y="36" text-anchor="middle">Tailscale</text>
+  <line class="d-wall" x1="10" y1="60" x2="390" y2="60"/>
+  <line class="d-line d-dash" x1="110" y1="46" x2="110" y2="86"/>
+  <line class="d-line d-dash" x1="290" y1="46" x2="290" y2="86"/>
+  <rect class="d-zone d-host" x="10" y="74" width="380" height="64"/>
+  <rect class="d-node" x="24" y="86" width="82" height="40"/>
+  <text class="d-text" x="65" y="111" text-anchor="middle">NPM</text>
+  <rect class="d-node" x="114" y="86" width="82" height="40"/>
+  <text class="d-text" x="155" y="111" text-anchor="middle">Pi-hole</text>
+  <rect class="d-node" x="204" y="86" width="82" height="40"/>
+  <text class="d-text" x="245" y="111" text-anchor="middle">apps</text>
+  <rect class="d-node d-accent" x="294" y="86" width="82" height="40"/>
+  <text class="d-text" x="335" y="111" text-anchor="middle">metrics</text>
+  <rect class="d-zone" x="10" y="150" width="380" height="40"/>
+  <text class="d-label" x="200" y="175" text-anchor="middle">admin · guest · IoT VLANs</text>
+</svg></div>
   <div class="card-body">
     <div class="card-meta">drwxr-xr-x · #infra · 2026-04-08</div>
     <h3><a href="/projects/doof-homelab.html">doof-homelab/</a></h3>
@@ -125,7 +183,7 @@
   </div>
 </article>
 <article class="card" data-category="security">
-  <div class="card-media">[ DOOF Vault key hierarchy ]</div>
+  <div class="card-media"><img src="/img/doofv.webp" alt="DOOF Vault create-vault screen in the terminal with a password strength checklist" loading="lazy"></div>
   <div class="card-body">
     <div class="card-meta">drwx------ · #security · 2025-11-07</div>
     <h3><a href="/projects/password-manager.html">password-manager/</a></h3>

@@ -154,9 +154,19 @@ function renderCard(project) {
   const external = href.startsWith('http');
 
   // image if we have one, otherwise a text placeholder
-  const media = p.image
-    ? `<img src="${esc(p.image)}" alt="${esc(p.imageAlt || p.title)}" loading="lazy">`
-    : `[ ${esc(p.imageAlt || 'image')} ]`;
+  // inline SVG (trusted file in content/svg/, themed by .d-* classes),
+  // then image, otherwise a text placeholder
+  let media;
+  if (p.svg) {
+    const file = path.join(ROOT, 'content', 'svg', path.basename(p.svg));
+    if (!fs.existsSync(file)) fail(`svg "${p.svg}" for ${p.slug} not found in content/svg/`);
+    media = fs.readFileSync(file, 'utf8').trim();
+    leakCheck(media, file);
+  } else if (p.image) {
+    media = `<img src="${esc(p.image)}" alt="${esc(p.imageAlt || p.title)}" loading="lazy">`;
+  } else {
+    media = `[ ${esc(p.imageAlt || 'image')} ]`;
+  }
 
   const stack = p.stack && p.stack.length
     ? `\n    <div class="card-stack">${p.stack.map(esc).join(' · ')}</div>`
@@ -164,7 +174,7 @@ function renderCard(project) {
 
   return `
 <article class="card" data-category="${esc(p.category)}">
-  <div class="card-media">${media}</div>
+  <div class="card-media${p.svg ? ' card-media--svg' : ''}">${media}</div>
   <div class="card-body">
     <div class="card-meta">${esc(p.perms || '')} · #${esc(p.category)} · ${esc(p.date)}</div>
     <h3><a href="${esc(href)}"${external ? ' rel="noopener"' : ''}>${esc(p.title)}/</a></h3>

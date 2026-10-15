@@ -1,0 +1,20 @@
+<svg viewBox="0 0 400 200" aria-hidden="true" focusable="false">
+  <rect class="d-node d-accent" x="40" y="16" width="140" height="30"/>
+  <text class="d-text" x="110" y="36" text-anchor="middle">Cloudflare</text>
+  <rect class="d-node" x="220" y="16" width="140" height="30"/>
+  <text class="d-text" x="290" y="36" text-anchor="middle">Tailscale</text>
+  <line class="d-wall" x1="10" y1="60" x2="390" y2="60"/>
+  <line class="d-line d-dash" x1="110" y1="46" x2="110" y2="86"/>
+  <line class="d-line d-dash" x1="290" y1="46" x2="290" y2="86"/>
+  <rect class="d-zone d-host" x="10" y="74" width="380" height="64"/>
+  <rect class="d-node" x="24" y="86" width="82" height="40"/>
+  <text class="d-text" x="65" y="111" text-anchor="middle">NPM</text>
+  <rect class="d-node" x="114" y="86" width="82" height="40"/>
+  <text class="d-text" x="155" y="111" text-anchor="middle">Pi-hole</text>
+  <rect class="d-node" x="204" y="86" width="82" height="40"/>
+  <text class="d-text" x="245" y="111" text-anchor="middle">apps</text>
+  <rect class="d-node d-accent" x="294" y="86" width="82" height="40"/>
+  <text class="d-text" x="335" y="111" text-anchor="middle">metrics</text>
+  <rect class="d-zone" x="10" y="150" width="380" height="40"/>
+  <text class="d-label" x="200" y="175" text-anchor="middle">admin · guest · IoT VLANs</text>
+</svg>

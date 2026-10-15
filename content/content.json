@@ -46,6 +46,7 @@
         "ZFS",
         "Prometheus"
       ],
+      "svg": "doof-homelab-card.svg",
       "image": null,
       "imageAlt": "Homelab architecture diagram",
       "link": {
@@ -65,8 +66,8 @@
         "SQLite",
         "Argon2id / AES-GCM"
       ],
-      "image": null,
-      "imageAlt": "DOOF Vault key hierarchy",
+      "image": "/img/doofv.webp",
+      "imageAlt": "DOOF Vault create-vault screen in the terminal with a password strength checklist",
       "link": {
         "label": "cat README",
         "href": "/projects/password-manager.html"
