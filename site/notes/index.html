@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>notes · doof.quest</title>
+  <meta name="description" content="Postmortems, how-tos and troubleshooting notes from running a Proxmox homelab.">
+  <link rel="preload" href="/fonts/JetBrainsMono-Regular.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="/css/style.css">
+  <script src="/js/main.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">skip to content</a>
+
+  <div class="container">
+    <header class="site-header">
+      <a class="prompt" href="/">mave@doof:~$</a>
+      <nav class="site-nav" aria-label="Main">
+        <a href="/projects/">./projects</a>
+        <a href="/notes/" aria-current="page">./notes</a>
+        <a href="/about.html">./about</a>
+        <a href="/resume.pdf" target="_blank" rel="noopener">resume.pdf</a>
+        <a href="#contact">./contact</a>
+      </nav>
+    </header>
+
+    <main id="main">
+      <header class="page-head">
+        <p class="cmd">tail -n 20 ~/notes</p>
+        <h1>~/notes</h1>
+        <p class="lead">Postmortems, how-tos and shorter troubleshooting notes from running my homelab. Mostly things that broke and what I learned fixing them.</p>
+      </header>
+
+      <section class="section" aria-label="Notes">
+        <ul class="note-list">
+          <!-- build:notes -->
+<li>
+  <a href="/notes/remote-access-cgnat.html">Remote access to a homelab with no public IP</a>
+  <span class="note-meta">#howto · #networking #security #dns · 2026-09-16</span>
+</li>
+<li>
+  <a href="/notes/console-outage.html">Postmortem: when every console said &quot;Connecting…&quot;</a>
+  <span class="note-meta">#postmortem · #dns #reverse-proxy #proxmox · 2026-09-09</span>
+</li>
+<li>
+  <a href="/notes/pihole-across-vlans.html">Pi-hole answered one VLAN and ignored the rest</a>
+  <span class="note-meta">#notes · #dns #networking · 2026-04</span>
+</li>
+<!-- /build:notes -->
+        </ul>
+      </section>
+    </main>
+
+    <footer class="site-footer" id="contact">
+      <nav aria-label="Contact">
+        <!-- build:footer-links --><a href="mailto:maveealier@gmail.com">mail</a>
+<a href="https://github.com/mfdoof" rel="noopener">github</a>
+<a href="https://www.linkedin.com/in/mave-alier-5499283b2/" rel="noopener">linkedin</a>
+<!-- /build:footer-links -->
+      </nav>
+      <nav aria-label="Site">
+        <a href="/notes/how-this-site-works.html">how-this-site-works.md</a>
+        <a href="/shell/">try the shell &gt;_</a>
+      </nav>
+    </footer>
+  </div>
+
+  <div class="statusbar">
+    <nav class="status-left" aria-label="Windows">
+      [doof]
+      <a href="/">0:home</a>
+      <a href="/projects/">1:projects</a>
+      <a href="/notes/" aria-current="page">2:notes*</a>
+      <a href="/about.html">3:about</a>
+    </nav>
+    <div class="status-right">
+      <span class="status-stats">
+        lab up <span data-uptime>—</span> ·
+        <!-- build:note-count -->3 notes
+<!-- /build:note-count --> ·
+      </span>
+      <button class="theme-toggle" type="button" data-theme-toggle aria-label="Toggle light or dark theme">theme</button>
+    </div>
+  </div>
+</body>
+</html>

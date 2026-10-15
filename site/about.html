@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>about · doof.quest</title>
+  <meta name="description" content="About Maverick: IT student in Cebu running a Proxmox homelab, looking for an entry-level IT role.">
+  <link rel="preload" href="/fonts/JetBrainsMono-Regular.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="/css/style.css">
+  <script src="/js/main.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">skip to content</a>
+
+  <div class="container">
+    <header class="site-header">
+      <a class="prompt" href="/">mave@doof:~$</a>
+      <nav class="site-nav" aria-label="Main">
+        <a href="/projects/">./projects</a>
+        <a href="/notes/">./notes</a>
+        <a href="/about.html" aria-current="page">./about</a>
+        <a href="/resume.pdf" target="_blank" rel="noopener">resume.pdf</a>
+        <a href="#contact">./contact</a>
+      </nav>
+    </header>
+
+    <main id="main">
+      <header class="page-head">
+        <p class="cmd">cat ~/about</p>
+        <h1>~/about</h1>
+      </header>
+
+      <section class="section split">
+        <div>
+          <h2>whoami</h2>
+          <div class="prose about-text">
+            <!-- build:about -->
+<p>I&#39;m Maverick, a graduating BS Information Technology student at the University of San Carlos in Cebu, Philippines.</p>
+<p>Linux is what got me started. Then I wanted to run my own services and secure my own network, mostly because I wanted to know where my data was going. That turned into doof, a Proxmox server at home with its own VLANs, monitoring and a Cloudflare tunnel, since my ISP doesn&#39;t give me a public IP. A lot of what I know came from breaking it and figuring out why.</p>
+<p>I&#39;m looking for an entry-level IT role, remote or on-site. Long term I want to work in systems and security.</p>
+<p>When I&#39;m not at a keyboard, I&#39;m usually playing sports, doing yoga or out hiking.</p>
+<!-- /build:about -->
+          </div>
+        </div>
+        <div>
+          <h2>~/certs</h2>
+          <ul class="cert-list">
+            <!-- build:certs -->
+<li>Google IT Support Professional Certificate — in progress</li>
+<!-- /build:certs -->
+          </ul>
+          <h2 class="mt-section">~/contact</h2>
+          <p class="prose">The quickest way to reach me is <a href="mailto:maveealier@gmail.com">email</a>. My resume is <a href="/resume.pdf" target="_blank" rel="noopener">here</a>, and the rest of my work is on <a href="https://github.com/mfdoof" rel="noopener">GitHub</a>.</p>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer" id="contact">
+      <nav aria-label="Contact">
+        <!-- build:footer-links --><a href="mailto:maveealier@gmail.com">mail</a>
+<a href="https://github.com/mfdoof" rel="noopener">github</a>
+<a href="https://www.linkedin.com/in/mave-alier-5499283b2/" rel="noopener">linkedin</a>
+<!-- /build:footer-links -->
+      </nav>
+      <nav aria-label="Site">
+        <a href="/notes/how-this-site-works.html">how-this-site-works.md</a>
+        <a href="/shell/">try the shell &gt;_</a>
+      </nav>
+    </footer>
+  </div>
+
+  <div class="statusbar">
+    <nav class="status-left" aria-label="Windows">
+      [doof]
+      <a href="/">0:home</a>
+      <a href="/projects/">1:projects</a>
+      <a href="/notes/">2:notes</a>
+      <a href="/about.html" aria-current="page">3:about*</a>
+    </nav>
+    <div class="status-right">
+      <span class="status-stats">
+        lab up <span data-uptime>—</span> ·
+        <!-- build:note-count -->3 notes
+<!-- /build:note-count --> ·
+      </span>
+      <button class="theme-toggle" type="button" data-theme-toggle aria-label="Toggle light or dark theme">theme</button>
+    </div>
+  </div>
+</body>
+</html>

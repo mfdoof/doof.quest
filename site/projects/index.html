@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>projects · doof.quest</title>
+  <meta name="description" content="Projects by Maverick: a Proxmox homelab, a terminal password manager and a network health monitor.">
+  <link rel="preload" href="/fonts/JetBrainsMono-Regular.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="/css/style.css">
+  <script src="/js/main.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">skip to content</a>
+
+  <div class="container">
+    <header class="site-header">
+      <a class="prompt" href="/">mave@doof:~$</a>
+      <nav class="site-nav" aria-label="Main">
+        <a href="/projects/" aria-current="page">./projects</a>
+        <a href="/notes/">./notes</a>
+        <a href="/about.html">./about</a>
+        <a href="/resume.pdf" target="_blank" rel="noopener">resume.pdf</a>
+        <a href="#contact">./contact</a>
+      </nav>
+    </header>
+
+    <main id="main">
+      <header class="page-head">
+        <p class="cmd">ls -la ~/projects</p>
+        <h1>~/projects</h1>
+        <p class="lead">Things I've built and run myself. Each one links to a write-up of how it works and why I made the choices I did.</p>
+      </header>
+
+      <section class="section" aria-label="Projects">
+        <!-- filter tabs: hidden until main.js enables them (site works without JS) -->
+        <div class="tabs" data-filter hidden>
+          <button class="tab is-active" type="button" data-filter-value="all" aria-pressed="true">all</button>
+          <button class="tab" type="button" data-filter-value="infra" aria-pressed="false">infra/</button>
+          <button class="tab" type="button" data-filter-value="security" aria-pressed="false">security/</button>
+          <button class="tab" type="button" data-filter-value="tools" aria-pressed="false">tools/</button>
+        </div>
+        <div class="card-grid">
+          <!-- build:projects -->
+<article class="card" data-category="tools">
+  <div class="card-media"><img src="/img/nhm-dashboard.webp" alt="Network Health Monitor dashboard showing ping, port scan and AI diagnostic results" loading="lazy"></div>
+  <div class="card-body">
+    <div class="card-meta">-rwxr-xr-x · #tools · 2026-04-13</div>
+    <h3><a href="/projects/net-health-monitor.html">net-health-monitor/</a></h3>
+    <p>Self-hosted ping, port scan and DNS tool with LLM summaries. Private targets blocked by resolved IP, scan data redacted before the LLM, 102 tests.</p>
+    <div class="card-stack">Python / FastAPI · React · Docker</div>
+    <a class="card-link" href="/projects/net-health-monitor.html">cat README →</a>
+  </div>
+</article>
+<article class="card" data-category="infra">
+  <div class="card-media card-media--svg"><svg viewBox="0 0 400 200" aria-hidden="true" focusable="false">
+  <rect class="d-node d-accent" x="40" y="16" width="140" height="30"/>
+  <text class="d-text" x="110" y="36" text-anchor="middle">Cloudflare</text>
+  <rect class="d-node" x="220" y="16" width="140" height="30"/>
+  <text class="d-text" x="290" y="36" text-anchor="middle">Tailscale</text>
+  <line class="d-wall" x1="10" y1="60" x2="390" y2="60"/>
+  <line class="d-line d-dash" x1="110" y1="46" x2="110" y2="86"/>
+  <line class="d-line d-dash" x1="290" y1="46" x2="290" y2="86"/>
+  <rect class="d-zone d-host" x="10" y="74" width="380" height="64"/>
+  <rect class="d-node" x="24" y="86" width="82" height="40"/>
+  <text class="d-text" x="65" y="111" text-anchor="middle">NPM</text>
+  <rect class="d-node" x="114" y="86" width="82" height="40"/>
+  <text class="d-text" x="155" y="111" text-anchor="middle">Pi-hole</text>
+  <rect class="d-node" x="204" y="86" width="82" height="40"/>
+  <text class="d-text" x="245" y="111" text-anchor="middle">apps</text>
+  <rect class="d-node d-accent" x="294" y="86" width="82" height="40"/>
+  <text class="d-text" x="335" y="111" text-anchor="middle">metrics</text>
+  <rect class="d-zone" x="10" y="150" width="380" height="40"/>
+  <text class="d-label" x="200" y="175" text-anchor="middle">admin · guest · IoT VLANs</text>
+</svg></div>
+  <div class="card-body">
+    <div class="card-meta">drwxr-xr-x · #infra · 2026-04-08</div>
+    <h3><a href="/projects/doof-homelab.html">doof-homelab/</a></h3>
+    <p>Design, storage layout, VLANs, monitoring.</p>
+    <div class="card-stack">Proxmox · ZFS · Prometheus</div>
+    <a class="card-link" href="/projects/doof-homelab.html">cat README →</a>
+  </div>
+</article>
+<article class="card" data-category="security">
+  <div class="card-media"><img src="/img/doofv.webp" alt="DOOF Vault create-vault screen in the terminal with a password strength checklist" loading="lazy"></div>
+  <div class="card-body">
+    <div class="card-meta">drwx------ · #security · 2025-11-07</div>
+    <h3><a href="/projects/password-manager.html">password-manager/</a></h3>
+    <p>DOOF Vault: a terminal password manager rebuilt around a threat model. Argon2id, HKDF and AES-256-GCM, decrypt on demand, 271 tests and checksummed releases.</p>
+    <div class="card-stack">Java · SQLite · Argon2id / AES-GCM</div>
+    <a class="card-link" href="/projects/password-manager.html">cat README →</a>
+  </div>
+</article>
+<!-- /build:projects -->
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer" id="contact">
+      <nav aria-label="Contact">
+        <!-- build:footer-links --><a href="mailto:maveealier@gmail.com">mail</a>
+<a href="https://github.com/mfdoof" rel="noopener">github</a>
+<a href="https://www.linkedin.com/in/mave-alier-5499283b2/" rel="noopener">linkedin</a>
+<!-- /build:footer-links -->
+      </nav>
+      <nav aria-label="Site">
+        <a href="/notes/how-this-site-works.html">how-this-site-works.md</a>
+        <a href="/shell/">try the shell &gt;_</a>
+      </nav>
+    </footer>
+  </div>
+
+  <div class="statusbar">
+    <nav class="status-left" aria-label="Windows">
+      [doof]
+      <a href="/">0:home</a>
+      <a href="/projects/" aria-current="page">1:projects*</a>
+      <a href="/notes/">2:notes</a>
+      <a href="/about.html">3:about</a>
+    </nav>
+    <div class="status-right">
+      <span class="status-stats">
+        lab up <span data-uptime>—</span> ·
+        <!-- build:note-count -->3 notes
+<!-- /build:note-count --> ·
+      </span>
+      <button class="theme-toggle" type="button" data-theme-toggle aria-label="Toggle light or dark theme">theme</button>
+    </div>
+  </div>
+</body>
+</html>

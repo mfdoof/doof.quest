@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>pihole-across-vlans · doof.quest</title>
+  <meta name="description" content="Why Pi-hole answered its own VLAN and timed out for the others: a listening mode that rejected other subnets, and stateless router ACLs that dropped the replies.">
+  <link rel="preload" href="/fonts/JetBrainsMono-Regular.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="/css/style.css">
+  <script src="/js/main.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">skip to content</a>
+
+  <div class="container">
+    <header class="site-header">
+      <a class="prompt" href="/">mave@doof:~$</a>
+      <nav class="site-nav" aria-label="Main">
+        <a href="/projects/">./projects</a>
+        <a href="/notes/" aria-current="page">./notes</a>
+        <a href="/about.html">./about</a>
+        <a href="/resume.pdf" target="_blank" rel="noopener">resume.pdf</a>
+        <a href="#contact">./contact</a>
+      </nav>
+    </header>
+
+    <main id="main">
+      <article>
+        <header class="page-head">
+          <p class="crumbs mono small"><a href="/notes/">~/notes</a> / pihole-across-vlans</p>
+          <div class="card-meta"><!-- build:note-meta -->#notes · #dns #networking · 2026-04
+<!-- /build:note-meta --></div>
+          <h1>Pi-hole answered one VLAN and ignored the rest</h1>
+          <p class="lead">Pi-hole was the first service I ran on Proxmox. It worked perfectly for devices on its own VLAN and timed out for everyone else. It turned out to be two separate problems stacked on top of each other.</p>
+        </header>
+
+        <div class="prose">
+
+          <h2 id="summary">$ cat summary</h2>
+          <p>Pi-hole lives on my server VLAN, and the router hands it out as the DNS server to every VLAN. Clients on other VLANs could ping it, but their DNS queries timed out. Pi-hole was rejecting queries from other subnets, and once that was fixed, the router's ACLs were dropping its replies.</p>
+
+          <h2 id="investigation">$ cat investigation</h2>
+          <p>Ping working ruled out routing. Something was blocking DNS specifically. Pi-hole's log said it directly:</p>
+          <pre><code>ignoring query from non-local network</code></pre>
+          <p>By default Pi-hole only answers clients on its own subnet, as a safety net in case it ends up exposed to the internet. Every other VLAN counts as "non-local", so their queries were dropped.</p>
+          <p>After I changed that, queries from the Guest VLAN showed up in Pi-hole's log as answered, but the clients still timed out. Pi-hole was replying and the replies weren't arriving. The router's ACLs between VLANs are stateless: they don't remember that a query went out, so the reply is judged as new traffic in the other direction. My rules allowed the query and blocked the answer.</p>
+
+          <h2 id="fix">$ cat fix</h2>
+          <ul>
+            <li><strong>Pi-hole:</strong> set the listening mode under Settings → DNS → Interface settings to accept queries from all origins. That's only safe because Pi-hole isn't reachable from the internet. My network has no inbound ports at all.</li>
+            <li><strong>ACLs:</strong> added a rule for each direction. Clients can reach Pi-hole on port 53, and Pi-hole's replies on port 53 can get back. Everything else between those VLANs stays blocked.</li>
+          </ul>
+
+          <h2 id="lessons">$ cat lessons</h2>
+          <ul>
+            <li><strong>Ping isn't proof.</strong> It shows the route works, not that a specific port or service does.</li>
+            <li><strong>Stateless means both ways.</strong> With ACLs that don't track connections, every allowed flow needs a matching rule for the return traffic.</li>
+            <li><strong>Fix one layer, test again.</strong> The second problem only showed up once the first one was gone.</li>
+          </ul>
+
+        </div>
+      </article>
+    </main>
+
+    <footer class="site-footer" id="contact">
+      <nav aria-label="Contact">
+        <!-- build:footer-links --><a href="mailto:maveealier@gmail.com">mail</a>
+<a href="https://github.com/mfdoof" rel="noopener">github</a>
+<a href="https://www.linkedin.com/in/mave-alier-5499283b2/" rel="noopener">linkedin</a>
+<!-- /build:footer-links -->
+      </nav>
+      <nav aria-label="Site">
+        <a href="/notes/how-this-site-works.html">how-this-site-works.md</a>
+        <a href="/shell/">try the shell &gt;_</a>
+      </nav>
+    </footer>
+  </div>
+
+  <div class="statusbar">
+    <nav class="status-left" aria-label="Windows">
+      [doof]
+      <a href="/">0:home</a>
+      <a href="/projects/">1:projects</a>
+      <a href="/notes/" aria-current="page">2:notes*</a>
+      <a href="/about.html">3:about</a>
+    </nav>
+    <div class="status-right">
+      <span class="status-stats">
+        lab up <span data-uptime>—</span> ·
+        <!-- build:note-count -->3 notes
+<!-- /build:note-count --> ·
+      </span>
+      <button class="theme-toggle" type="button" data-theme-toggle aria-label="Toggle light or dark theme">theme</button>
+    </div>
+  </div>
+</body>
+</html>

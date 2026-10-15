@@ -380,3 +380,5 @@ pre {
 .d-label { fill: var(--accent); font-family: var(--font-mono); font-size: 12px; }
 .d-text  { fill: var(--heading); font-family: var(--font-mono); font-size: 13px; }
 .d-sub   { fill: var(--text-muted); font-family: var(--font-mono); font-size: 10.5px; }
+
+.mt-section { margin-top: 40px; }
