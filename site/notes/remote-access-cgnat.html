@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>remote-access-cgnat · doof.quest</title>
+  <meta name="description" content="How I reach a homelab behind CGNAT with zero open ports: Tailscale with Pi-hole DNS for everyday access, and a Cloudflare Tunnel behind Access for SSH.">
+  <link rel="preload" href="/fonts/JetBrainsMono-Regular.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="/css/style.css">
+  <script src="/js/main.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">skip to content</a>
+
+  <div class="container">
+    <header class="site-header">
+      <a class="prompt" href="/">mave@doof:~$</a>
+      <nav class="site-nav" aria-label="Main">
+        <a href="/projects/">./projects</a>
+        <a href="/notes/" aria-current="page">./notes</a>
+        <a href="/about.html">./about</a>
+        <a href="/resume.pdf">resume.pdf</a>
+        <a href="#contact">./contact</a>
+      </nav>
+    </header>
+
+    <main id="main">
+      <article>
+        <header class="page-head">
+          <p class="crumbs mono small"><a href="/notes/">~/notes</a> / remote-access-cgnat</p>
+          <div class="card-meta"><!-- build:note-meta -->#howto · #networking #security #dns · 2026-09-16
+<!-- /build:note-meta --></div>
+          <h1>Remote access to a homelab with no public IP</h1>
+          <p class="lead">My ISP puts me behind CGNAT, so port forwarding was never an option. I set up two ways in instead, Tailscale for everyday use and a Cloudflare Tunnel for SSH on networks that block Tailscale, and neither one opens a port on my router.</p>
+        </header>
+
+        <div class="prose">
+
+          <h2 id="goal">$ cat goal</h2>
+          <ul>
+            <li>Reach my self-hosted services from anywhere at the same <code>https://&lt;service&gt;.doof.quest</code> URLs I use at home, with valid certificates.</li>
+            <li>SSH into the Proxmox host from restrictive networks too, like school Wi-Fi, where Tailscale can be blocked.</li>
+            <li>Zero inbound ports. Every connection starts from inside my network.</li>
+          </ul>
+
+          <h2 id="design">$ cat design</h2>
+          <figure class="diagram">
+            <svg viewBox="0 0 720 280" role="img" aria-labelledby="ra-title ra-desc">
+              <title id="ra-title">Two remote access paths into the homelab</title>
+              <desc id="ra-desc">Path one: a device on Tailscale reaches the home network through a subnet router, uses Pi-hole for DNS, and reaches services through the reverse proxy. Path two: an SSH client goes through Cloudflare Access, which requires an email one-time PIN, then through an outbound-only tunnel to a connector container, which forwards to the Proxmox host's SSH with key-only login. Both cross the CGNAT boundary using outbound connections only.</desc>
+
+              <text class="d-label" x="10" y="20">everyday · all services</text>
+              <rect class="d-node" x="10" y="32" width="150" height="56"/>
+              <text class="d-text" x="85" y="56" text-anchor="middle">laptop / phone</text>
+              <text class="d-sub" x="85" y="73" text-anchor="middle">Tailscale on</text>
+              <line class="d-line d-dash" x1="160" y1="60" x2="370" y2="60"/>
+              <text class="d-sub" x="245" y="52" text-anchor="middle">WireGuard</text>
+              <rect class="d-node" x="370" y="32" width="150" height="56"/>
+              <text class="d-text" x="445" y="56" text-anchor="middle">subnet router</text>
+              <text class="d-sub" x="445" y="73" text-anchor="middle">DNS → Pi-hole</text>
+              <line class="d-line" x1="520" y1="60" x2="560" y2="60"/>
+              <rect class="d-node d-accent" x="560" y="32" width="150" height="56"/>
+              <text class="d-text" x="635" y="56" text-anchor="middle">reverse proxy</text>
+              <text class="d-sub" x="635" y="73" text-anchor="middle">wildcard TLS</text>
+
+              <line class="d-wall" x1="345" y1="10" x2="345" y2="112"/>
+              <line class="d-wall" x1="345" y1="152" x2="345" y2="256"/>
+              <text class="d-sub" x="345" y="128" text-anchor="middle">CGNAT</text>
+              <text class="d-sub" x="345" y="142" text-anchor="middle">no inbound ports</text>
+              <text class="d-label" x="10" y="128">internet</text>
+              <text class="d-label" x="710" y="128" text-anchor="end">home</text>
+
+              <text class="d-label" x="10" y="182">fallback · SSH only</text>
+              <rect class="d-node" x="10" y="194" width="120" height="56"/>
+              <text class="d-text" x="70" y="218" text-anchor="middle">ssh doof</text>
+              <text class="d-sub" x="70" y="235" text-anchor="middle">any network</text>
+              <line class="d-line" x1="130" y1="222" x2="160" y2="222"/>
+              <rect class="d-node d-accent" x="160" y="194" width="160" height="56"/>
+              <text class="d-text" x="240" y="218" text-anchor="middle">Cloudflare Access</text>
+              <text class="d-sub" x="240" y="235" text-anchor="middle">email + one-time PIN</text>
+              <line class="d-line d-dash" x1="320" y1="222" x2="370" y2="222"/>
+              <text class="d-sub" x="345" y="272" text-anchor="middle">tunnel</text>
+              <rect class="d-node" x="370" y="194" width="150" height="56"/>
+              <text class="d-text" x="445" y="218" text-anchor="middle">connector</text>
+              <text class="d-sub" x="445" y="235" text-anchor="middle">dials out to Cloudflare</text>
+              <line class="d-line" x1="520" y1="222" x2="560" y2="222"/>
+              <rect class="d-node" x="560" y="194" width="150" height="56"/>
+              <text class="d-text" x="635" y="218" text-anchor="middle">Proxmox sshd</text>
+              <text class="d-sub" x="635" y="235" text-anchor="middle">key-only</text>
+            </svg>
+            <figcaption>Two paths in, both started from inside the network.</figcaption>
+          </figure>
+          <p><strong>Tailscale</strong> is the main path. A small container acts as a subnet router, so any device on my tailnet can reach the home network. Tailscale's DNS settings send every query to my Pi-hole, which answers <code>*.doof.quest</code> with the reverse proxy. The result is the same URLs and the same certificates, at home or on mobile data.</p>
+          <p><strong>Cloudflare Tunnel</strong> is the fallback, for SSH only. A connector container keeps an outbound connection open to Cloudflare. Before anything reaches that tunnel, Cloudflare Access asks for an email one-time PIN, and only my address is allowed. Behind that, the Proxmox host only accepts SSH keys. On my laptop, <code>cloudflared</code> runs as the SSH proxy command, so it's still just <code>ssh doof</code>.</p>
+
+          <h2 id="decisions">$ cat decisions</h2>
+          <ul>
+            <li><strong>Two paths, not one.</strong> Tailscale covers everything but can be blocked. The tunnel works anywhere HTTPS does, so I kept it as narrow as possible: one service.</li>
+            <li><strong>The web UI stays off the tunnel.</strong> The Proxmox web UI is only reachable on the LAN or over Tailscale.</li>
+            <li><strong>Access before the route.</strong> I created the Access policy first and the tunnel route second, so the hostname was never reachable without the PIN in front.</li>
+            <li><strong>Exact email match.</strong> The policy matches my email address exactly, not "emails ending in", which would let in anyone on the same email domain.</li>
+            <li><strong>Pi-hole for all tailnet DNS.</strong> I chose this over split DNS so I also get ad blocking away from home. It needs "Override local DNS" turned on, or devices keep using their own resolver.</li>
+          </ul>
+
+          <h2 id="gotchas">$ cat gotchas</h2>
+          <ul>
+            <li><strong>The wildcard caught the SSH name.</strong> At home, Pi-hole answers every <code>*.doof.quest</code> name with the reverse proxy, including the SSH hostname. The proxy only handles HTTP, so SSH failed at home but worked everywhere else. A more specific dnsmasq rule sends that one name to a public resolver: <pre><code>address=/doof.quest/&lt;proxy&gt;
+server=/&lt;ssh-host&gt;.doof.quest/1.1.1.1</code></pre></li>
+            <li><strong>Password login was still on.</strong> I thought SSH was key-only, but the only <code>PasswordAuthentication</code> line was commented out, and OpenSSH defaults to yes. <code>sshd -T</code> shows the settings actually in effect, not what the file seems to say. A drop-in in <code>sshd_config.d/</code> fixed it.</li>
+            <li><strong>The first match wins in <code>~/.ssh/config</code>.</strong> An older <code>Host doof</code> block above the new one meant <code>ssh doof</code> silently skipped the tunnel. <code>ssh -G doof</code> shows what SSH will really use.</li>
+            <li><strong>The new host block needed its own key.</strong> Without the <code>IdentityFile</code> line, the tunnel worked but SSH fell back to asking for a password.</li>
+            <li><strong>"DNS failure" that wasn't DNS.</strong> <code>apt update</code> in the new container couldn't resolve anything because the container had no IP address at all. Static IPs for containers go in Proxmox's network settings, not inside the guest, or they get overwritten on boot.</li>
+          </ul>
+
+          <h2 id="verify">$ cat verify</h2>
+          <pre><code>dig +short &lt;ssh-host&gt;.doof.quest      # Cloudflare IPs, even at home
+ssh -G doof | grep -E "^(hostname|proxycommand)"
+sshd -T | grep passwordauthentication   # no
+ssh -o PubkeyAuthentication=no doof      # Permission denied (publickey)</code></pre>
+
+          <h2 id="lessons">$ cat lessons</h2>
+          <ul>
+            <li><strong>CGNAT pushed me to a better design.</strong> With no inbound ports, there's nothing on my home IP to scan.</li>
+            <li><strong>Check the effective config.</strong> <code>sshd -T</code> and <code>ssh -G</code> answer "what is actually running", which isn't always what the file looks like.</li>
+            <li><strong>Wildcards need exceptions.</strong> A catch-all DNS rule is convenient until one name needs to go somewhere else.</li>
+          </ul>
+
+        </div>
+      </article>
+    </main>
+
+    <footer class="site-footer" id="contact">
+      <nav aria-label="Contact">
+        <!-- build:footer-links --><a href="mailto:maveealier@gmail.com">mail</a>
+<a href="https://github.com/mfdoof" rel="noopener">github</a>
+<a href="https://www.linkedin.com/in/mave-alier-5499283b2/" rel="noopener">linkedin</a>
+<!-- /build:footer-links -->
+      </nav>
+      <nav aria-label="Site">
+        <a href="/notes/how-this-site-works.html">how-this-site-works.md</a>
+        <a href="/shell/">try the shell &gt;_</a>
+      </nav>
+    </footer>
+  </div>
+
+  <div class="statusbar">
+    <nav class="status-left" aria-label="Windows">
+      [doof]
+      <a href="/">0:home</a>
+      <a href="/projects/">1:projects</a>
+      <a href="/notes/" aria-current="page">2:notes*</a>
+      <a href="/about.html">3:about</a>
+    </nav>
+    <div class="status-right">
+      <span class="status-stats">
+        lab up <span data-uptime>—</span> ·
+        <!-- build:note-count -->2 notes
+<!-- /build:note-count --> ·
+      </span>
+      <button class="theme-toggle" type="button" data-theme-toggle aria-label="Toggle light or dark theme">theme</button>
+    </div>
+  </div>
+</body>
+</html>

@@ -97,11 +97,18 @@
   ],
   "notes": [
     {
+      "slug": "remote-access-cgnat",
+      "title": "Remote access to a homelab with no public IP",
+      "tag": "howto",
+      "topics": ["networking", "security", "dns"],
+      "date": "2026-09-16"
+    },
+    {
       "slug": "console-outage",
       "title": "Postmortem: when every console said \"Connecting…\"",
       "tag": "postmortem",
-      "date": "2026-09-09",
-      "pinned": true
+      "topics": ["dns", "reverse-proxy", "proxmox"],
+      "date": "2026-09-09"
     }
   ],
   "about": [
