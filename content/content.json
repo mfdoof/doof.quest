@@ -99,7 +99,7 @@
     {
       "slug": "console-outage",
       "title": "Postmortem: when every console said \"Connecting…\"",
-      "tag": "writeups",
+      "tag": "postmortem",
       "date": "2026-09-09",
       "pinned": true
     }

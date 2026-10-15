@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>TITLE · doof.quest</title>
+  <meta name="description" content="DESCRIPTION">
+  <link rel="preload" href="/fonts/JetBrainsMono-Regular.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="/css/style.css">
+  <script src="/js/main.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">skip to content</a>
+
+  <div class="container">
+    <header class="site-header">
+      <a class="prompt" href="/">mave@doof:~$</a>
+      <nav class="site-nav" aria-label="Main">
+        <a href="/projects/">./projects</a>
+        <a href="/notes/" aria-current="page">./notes</a>
+        <a href="/about.html">./about</a>
+        <a href="/resume.pdf">resume.pdf</a>
+        <a href="#contact">./contact</a>
+      </nav>
+    </header>
+
+    <main id="main">
+      <!-- Write-up template. Copy to notes/<slug>.html, add the note to content.json
+           and the page list in build.js. Keep only the sections that apply.
+           No private IPs, internal hostnames or unfixed weaknesses. -->
+      <article>
+        <header class="page-head">
+          <p class="crumbs mono small"><a href="/notes/">~/notes</a> / SLUG</p>
+          <div class="card-meta">#postmortem · YYYY-MM-DD</div>
+          <h1>TITLE</h1>
+          <p class="lead">One or two sentences: what broke and why.</p>
+        </header>
+        <div class="prose">
+          <h2 id="summary">$ cat summary</h2>
+          <p>What broke, the cause and the fix in 2–3 sentences.</p>
+          <h2 id="impact">$ cat impact</h2>
+          <ul><li>What stopped working, and what still worked.</li></ul>
+          <h2 id="investigation">$ cat investigation</h2>
+          <p>What was checked and ruled out, in order.</p>
+          <h2 id="root-cause">$ cat root-cause</h2>
+          <p>The actual cause. Add a diagram if it helps.</p>
+          <h2 id="fix">$ cat fix</h2>
+          <p>What changed, and the right way to do it next time.</p>
+          <h2 id="lessons">$ cat lessons</h2>
+          <ul><li>Two or three takeaways.</li></ul>
+        </div>
+      </article>
+    </main>
+
+    <footer class="site-footer" id="contact">
+      <nav aria-label="Contact">
+        <!-- build:footer-links --><a href="mailto:maveealier@gmail.com">mail</a>
+<a href="https://github.com/mfdoof" rel="noopener">github</a>
+<a href="https://www.linkedin.com/in/mave-alier-5499283b2/" rel="noopener">linkedin</a>
+<!-- /build:footer-links -->
+      </nav>
+      <nav aria-label="Site">
+        <a href="/notes/how-this-site-works.html">how-this-site-works.md</a>
+        <a href="/shell/">try the shell &gt;_</a>
+      </nav>
+    </footer>
+  </div>
+
+  <div class="statusbar">
+    <nav class="status-left" aria-label="Windows">
+      [doof]
+      <a href="/">0:home</a>
+      <a href="/projects/">1:projects</a>
+      <a href="/notes/" aria-current="page">2:notes*</a>
+      <a href="/about.html">3:about</a>
+    </nav>
+    <div class="status-right">
+      <span class="status-stats">
+        lab up <span data-uptime>—</span> ·
+        <!-- build:note-count -->1 note
+<!-- /build:note-count --> ·
+      </span>
+      <button class="theme-toggle" type="button" data-theme-toggle aria-label="Toggle light or dark theme">theme</button>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>console-outage · doof.quest</title>
+  <meta name="description" content="Postmortem: every Proxmox web console hung on Connecting. The cause was a local DNS record that sent the console WebSocket around the reverse proxy.">
+  <link rel="preload" href="/fonts/JetBrainsMono-Regular.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="/css/style.css">
+  <script src="/js/main.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">skip to content</a>
+
+  <div class="container">
+    <header class="site-header">
+      <a class="prompt" href="/">mave@doof:~$</a>
+      <nav class="site-nav" aria-label="Main">
+        <a href="/projects/">./projects</a>
+        <a href="/notes/" aria-current="page">./notes</a>
+        <a href="/about.html">./about</a>
+        <a href="/resume.pdf">resume.pdf</a>
+        <a href="#contact">./contact</a>
+      </nav>
+    </header>
+
+    <main id="main">
+      <article>
+        <header class="page-head">
+          <p class="crumbs mono small"><a href="/notes/">~/notes</a> / console-outage</p>
+          <div class="card-meta">#postmortem · 2026-09-09</div>
+          <h1>Postmortem: when every console said "Connecting…"</h1>
+          <p class="lead">Every VM and container console in my Proxmox web UI stopped working at once. The cause wasn't Proxmox at all. It was one DNS record I had added that day.</p>
+        </header>
+
+        <div class="prose">
+
+          <h2 id="summary">$ cat summary</h2>
+          <p>I added a local DNS record in Pi-hole for the Proxmox web UI's domain. It pointed the name straight at the Proxmox host instead of at the reverse proxy in front of it. The web console runs over a WebSocket, and that connection never made it back to the server, so every console timed out. Removing the record fixed it.</p>
+
+          <h2 id="impact">$ cat impact</h2>
+          <ul>
+            <li>No web console for any VM, any container or the node shell. Each one sat on "Connecting…" forever.</li>
+            <li>Everything else in the web UI worked: dashboards, settings, starting and stopping guests.</li>
+            <li>The guests themselves were fine, and <code>pct console</code> over SSH still worked. Only access through the browser was broken.</li>
+          </ul>
+
+          <h2 id="investigation">$ cat investigation</h2>
+          <p>The task log had the first real clue. Every console attempt ended the same way after about 10 seconds:</p>
+          <pre><code>TASK ERROR: command '/usr/bin/termproxy ...' failed: exit code 1</code></pre>
+          <p>It failed the same way for every guest, so I started with the host. I checked and ruled out:</p>
+          <ul>
+            <li>Disk space: under half full.</li>
+            <li>The Proxmox services (<code>pveproxy</code>, <code>pvedaemon</code>, <code>pvestatd</code>): all running, nothing odd in their logs.</li>
+            <li>Clock and NTP: in sync, so not a certificate or ticket timing problem.</li>
+            <li>The termproxy binary itself, and AppArmor: no errors or denials.</li>
+            <li>The local auth API termproxy calls: reachable.</li>
+            <li>A port clash in the VNC range: nothing else was listening there.</li>
+          </ul>
+          <p>With the host clean, the 10 seconds started to matter. termproxy doesn't fail on start. It opens a port and waits for the browser to connect back, then gives up. So the server side was fine and the browser's connection was never arriving. The question became what had changed between my browser and the server, and the answer was the DNS record I'd added earlier that day.</p>
+
+          <h2 id="root-cause">$ cat root-cause</h2>
+          <figure class="diagram">
+            <svg viewBox="0 0 720 230" role="img" aria-labelledby="co-title co-desc">
+              <title id="co-title">Correct and broken paths for the console WebSocket</title>
+              <desc id="co-desc">Normally the domain resolves to the reverse proxy, which forwards to the Proxmox web port, so the console connects. With the bad record, the domain resolved straight to the Proxmox host on the standard HTTPS port, where the WebSocket had nowhere to go, so termproxy timed out.</desc>
+
+              <text class="d-label" x="10" y="22">before · working</text>
+              <rect class="d-node" x="10" y="34" width="150" height="56"/>
+              <text class="d-text" x="85" y="58" text-anchor="middle">browser</text>
+              <text class="d-sub" x="85" y="75" text-anchor="middle">opens console</text>
+              <line class="d-line" x1="160" y1="62" x2="270" y2="62"/>
+              <text class="d-sub" x="215" y="54" text-anchor="middle">DNS → proxy</text>
+              <rect class="d-node d-accent" x="270" y="34" width="180" height="56"/>
+              <text class="d-text" x="360" y="58" text-anchor="middle">reverse proxy</text>
+              <text class="d-sub" x="360" y="75" text-anchor="middle">TLS termination</text>
+              <line class="d-line" x1="450" y1="62" x2="560" y2="62"/>
+              <text class="d-sub" x="505" y="54" text-anchor="middle">web UI port</text>
+              <rect class="d-node" x="560" y="34" width="150" height="56"/>
+              <text class="d-text" x="635" y="58" text-anchor="middle">Proxmox</text>
+              <text class="d-sub" x="635" y="75" text-anchor="middle">termproxy connects</text>
+
+              <text class="d-label" x="10" y="142">after the new record · broken</text>
+              <rect class="d-node" x="10" y="154" width="150" height="56"/>
+              <text class="d-text" x="85" y="178" text-anchor="middle">browser</text>
+              <text class="d-sub" x="85" y="195" text-anchor="middle">opens console</text>
+              <line class="d-line d-dash" x1="160" y1="182" x2="560" y2="182"/>
+              <text class="d-sub" x="360" y="174" text-anchor="middle">DNS → Proxmox host directly, HTTPS port</text>
+              <text class="d-sub" x="360" y="200" text-anchor="middle">skips the proxy · WebSocket never arrives</text>
+              <rect class="d-node" x="560" y="154" width="150" height="56"/>
+              <text class="d-text" x="635" y="178" text-anchor="middle">Proxmox</text>
+              <text class="d-sub" x="635" y="195" text-anchor="middle">waits 10 s · exit 1</text>
+            </svg>
+            <figcaption>Same domain, two different paths. Only one of them can carry the console.</figcaption>
+          </figure>
+          <p>I reach the Proxmox web UI through a domain that resolves to my reverse proxy. The proxy handles TLS and forwards to the web UI's port. The new Pi-hole record pointed that same domain at the Proxmox host itself. That skipped the proxy, and nothing on the host's standard HTTPS port could take the console's WebSocket.</p>
+          <h2 id="fix">$ cat fix</h2>
+          <p>I deleted the record, and the consoles worked again right away, both by IP and by domain.</p>
+          <p>If I want local DNS for it later, the record has to point at the reverse proxy, not the host, and the proxy host needs WebSocket support turned on. Then local clients take the same path everyone else does.</p>
+
+          <h2 id="lessons">$ cat lessons</h2>
+          <ul>
+            <li><strong>Start with what changed.</strong> I spent most of the time checking a healthy host. The DNS change from that same day should have been my first suspect.</li>
+            <li><strong>Read the timeouts.</strong> A clean exit after a fixed 10 seconds meant something was waiting and gave up, not that something crashed. That pointed at the network, not the server.</li>
+            <li><strong>Split DNS has to match the proxy.</strong> A local record that skips the reverse proxy changes more than the address. It changes which ports, certificates and protocols are on the path.</li>
+          </ul>
+
+        </div>
+      </article>
+    </main>
+
+    <footer class="site-footer" id="contact">
+      <nav aria-label="Contact">
+        <!-- build:footer-links --><a href="mailto:maveealier@gmail.com">mail</a>
+<a href="https://github.com/mfdoof" rel="noopener">github</a>
+<a href="https://www.linkedin.com/in/mave-alier-5499283b2/" rel="noopener">linkedin</a>
+<!-- /build:footer-links -->
+      </nav>
+      <nav aria-label="Site">
+        <a href="/notes/how-this-site-works.html">how-this-site-works.md</a>
+        <a href="/shell/">try the shell &gt;_</a>
+      </nav>
+    </footer>
+  </div>
+
+  <div class="statusbar">
+    <nav class="status-left" aria-label="Windows">
+      [doof]
+      <a href="/">0:home</a>
+      <a href="/projects/">1:projects</a>
+      <a href="/notes/" aria-current="page">2:notes*</a>
+      <a href="/about.html">3:about</a>
+    </nav>
+    <div class="status-right">
+      <span class="status-stats">
+        lab up <span data-uptime>—</span> ·
+        <!-- build:note-count -->1 note
+<!-- /build:note-count --> ·
+      </span>
+      <button class="theme-toggle" type="button" data-theme-toggle aria-label="Toggle light or dark theme">theme</button>
+    </div>
+  </div>
+</body>
+</html>
