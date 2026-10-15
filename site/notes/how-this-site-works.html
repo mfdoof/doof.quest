@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>How this site works · doof.quest</title>
+  <meta name="description" content="How doof.quest is built and deployed: plain HTML, a small build script and Cloudflare Pages.">
+  <link rel="preload" href="/fonts/JetBrainsMono-Regular.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="/css/style.css?v=5fe19078">
+  <script src="/js/main.js?v=73752b0e" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">skip to content</a>
+
+  <div class="container">
+    <header class="site-header">
+      <a class="prompt" href="/">mave@doof:~$</a>
+      <nav class="site-nav" aria-label="Main">
+        <a href="/projects/">./projects</a>
+        <a href="/notes/" aria-current="page">./notes</a>
+        <a href="/about.html">./about</a>
+        <a href="/resume.pdf" target="_blank" rel="noopener">resume.pdf</a>
+        <a href="#contact">./contact</a>
+      </nav>
+    </header>
+
+    <main id="main">
+      <article>
+        <header class="page-head">
+          <p class="crumbs mono small"><a href="/notes/">~/notes</a> / how-this-site-works</p>
+          <div class="card-meta"><!-- build:note-meta -->#howto · #security · 2026-10-15
+<!-- /build:note-meta --></div>
+          <h1>How this site works</h1>
+          <p class="lead">A plain HTML site, a small build script I wrote, and Cloudflare Pages.</p>
+        </header>
+        <div class="prose">
+          <h2 id="goal">$ cat goal</h2>
+          <p>I wanted a portfolio that loads fast, is easy to keep up to date, and that I can publish without worrying I've leaked something from my lab.</p>
+          <h2 id="design">$ cat design</h2>
+          <p>All the text on the site (project cards, notes, certs, bio) lives in one data file. A small build script I wrote reads that file and fills it into plain HTML pages. Cloudflare Pages then serves those pages straight from my GitHub repo. When I push, the site updates.</p>
+          <h2 id="decisions">$ cat decisions</h2>
+          <p>I skipped frameworks and static site generators. I wanted to understand every file that ships, and a short script I wrote myself is easier to audit than a framework's dependencies.</p>
+          <p>I commit the built pages instead of building them on Cloudflare. What's in the repo is exactly what's live.</p>
+          <p>Fonts are hosted on the site itself, and the security policy only allows the site to load its own files. Nothing calls out to third parties.</p>
+          <h2 id="gotchas">$ cat gotchas</h2>
+          <p>After the first deploy, browsers kept showing the old stylesheet. The build now adds a version tag to the CSS and JS links, so each change forces a fresh download.</p>
+          <p>Security headers only apply once the site is deployed. They don't show up in a local preview, so I check them on the live site.</p>
+          <h2 id="verify">$ cat verify</h2>
+          <p>The build fails if a private IP address shows up in any page. That check exists because my source notes are full of them. The live site scores A+ on securityheaders.com.</p>
+          <h2 id="lessons">$ cat lessons</h2>
+          <p>A boring stack is easy to secure. The leak check has already earned its place: writing about a homelab means constantly scrubbing internal details.</p>
+        </div>
+      </article>
+    </main>
+
+    <footer class="site-footer" id="contact">
+      <nav aria-label="Contact">
+        <!-- build:footer-links --><a href="mailto:maveealier@gmail.com">mail</a>
+<a href="https://github.com/mfdoof" rel="noopener">github</a>
+<a href="https://www.linkedin.com/in/mave-alier-5499283b2/" rel="noopener">linkedin</a>
+<!-- /build:footer-links -->
+      </nav>
+      <nav aria-label="Site">
+        <a href="/notes/how-this-site-works.html">how-this-site-works.md</a>
+        <!-- add back when built: <a href="/shell/">try the shell &gt;_</a> -->
+      </nav>
+    </footer>
+  </div>
+
+  <div class="statusbar">
+    <nav class="status-left" aria-label="Windows">
+      [doof]
+      <a href="/">0:home</a>
+      <a href="/projects/">1:projects</a>
+      <a href="/notes/" aria-current="page">2:notes*</a>
+      <a href="/about.html">3:about</a>
+    </nav>
+    <div class="status-right">
+      <span class="status-stats">
+        lab up <span data-uptime>—</span> ·
+        <!-- build:note-count -->9 notes
+<!-- /build:note-count --> ·
+      </span>
+      <button class="theme-toggle" type="button" data-theme-toggle aria-label="Toggle light or dark theme">theme</button>
+    </div>
+  </div>
+</body>
+</html>

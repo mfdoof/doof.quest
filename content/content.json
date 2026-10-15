@@ -178,6 +178,15 @@
         "proxmox"
       ],
       "date": "2026-07"
+    },
+    {
+      "slug": "how-this-site-works",
+      "title": "How this site works",
+      "tag": "howto",
+      "topics": [
+        "security"
+      ],
+      "date": "2026-10-15"
     }
   ],
   "about": [
