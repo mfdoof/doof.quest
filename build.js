@@ -12,6 +12,7 @@
 
 const fs = require('node:fs');
 const path = require('node:path');
+const crypto = require('node:crypto');
 
 const ROOT = __dirname;
 const CONTENT_FILE = path.join(ROOT, 'content', 'content.json');
@@ -232,6 +233,25 @@ function fillMarker(html, name, inner, file) {
   return { html: html.replace(re, (_, open, close) => `${open}${inner}\n${close}`), found: true };
 }
 
+/* =========================================================================
+ * Cache-busting: link CSS/JS as file?v=<hash> so browsers refetch on change
+ * ========================================================================= */
+
+const ASSETS = ['/css/style.css', '/js/main.js'];
+const assetHash = {};
+for (const a of ASSETS) {
+  const data = fs.readFileSync(path.join(SITE_DIR, a));
+  assetHash[a] = crypto.createHash('sha256').update(data).digest('hex').slice(0, 8);
+}
+
+function bustAssets(html) {
+  for (const a of ASSETS) {
+    const re = new RegExp(`(["'])${a.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(\\?v=[0-9a-f]+)?\\1`, 'g');
+    html = html.replace(re, `$1${a}?v=${assetHash[a]}$1`);
+  }
+  return html;
+}
+
 function buildFile(relPath, blocks) {
   const file = path.join(SITE_DIR, relPath);
   let html = fs.readFileSync(file, 'utf8');
@@ -244,6 +264,7 @@ function buildFile(relPath, blocks) {
     if (result.found) filled.push(name);
   }
 
+  html = bustAssets(html);
   fs.writeFileSync(file, html);
   console.log(`build: ${relPath} — ${filled.length ? filled.join(', ') : 'no markers yet'}`);
 }
