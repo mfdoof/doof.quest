@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Postmortem: the site worked everywhere but my house · doof.quest</title>
+  <meta name="description" content="Launch-day postmortem: a forgotten Pi-hole wildcard sent the root domain to my reverse proxy, but only at home.">
+  <link rel="preload" href="/fonts/JetBrainsMono-Regular.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="/css/style.css">
+  <script src="/js/main.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">skip to content</a>
+
+  <div class="container">
+    <header class="site-header">
+      <a class="prompt" href="/">mave@doof:~$</a>
+      <nav class="site-nav" aria-label="Main">
+        <a href="/projects/">./projects</a>
+        <a href="/notes/" aria-current="page">./notes</a>
+        <a href="/about.html">./about</a>
+        <a href="/resume.pdf" target="_blank" rel="noopener">resume.pdf</a>
+        <a href="#contact">./contact</a>
+      </nav>
+    </header>
+
+    <main id="main">
+      <article>
+        <header class="page-head">
+          <p class="crumbs mono small"><a href="/notes/">~/notes</a> / launch-day-dns</p>
+          <div class="card-meta"><!-- build:note-meta -->#postmortem · #dns #reverse-proxy · 2026-10-15
+<!-- /build:note-meta --></div>
+          <h1>Postmortem: the site worked everywhere but my house</h1>
+          <p class="lead">On launch day the site loaded everywhere except my home network, where it showed the reverse proxy's default page. A forgotten wildcard DNS rule in Pi-hole was still claiming the root domain.</p>
+        </header>
+        <div class="prose">
+
+          <h2 id="summary">$ cat summary</h2>
+          <p>On launch day, <code>doof.quest</code> loaded fine on mobile data but showed my reverse proxy's default page at home. A wildcard rule in Pi-hole answered the root domain, and every subdomain, with the proxy's address. I replaced the wildcard with one exact record per service.</p>
+
+          <h2 id="impact">$ cat impact</h2>
+          <ul>
+            <li>Only devices on my home network were affected. Everyone else got the real site.</li>
+            <li>Internal services and SSH kept working the whole time.</li>
+          </ul>
+
+          <h2 id="investigation">$ cat investigation</h2>
+          <ul>
+            <li>Pi-hole's Local DNS records page had only two entries, neither of them the root.</li>
+            <li>No Local CNAME records. Nothing in <code>/etc/hosts</code>. The router hands out Pi-hole as the only DNS server.</li>
+            <li><code>dig doof.quest</code> through Pi-hole returned the proxy's private IP, while <code>dig @1.1.1.1</code> returned Cloudflare. So Pi-hole was answering from somewhere the UI didn't show.</li>
+            <li>Grepping Pi-hole's config for the domain found it: two raw dnsmasq lines in <code>misc.dnsmasq_lines</code>.</li>
+          </ul>
+
+          <h2 id="root-cause">$ cat root-cause</h2>
+          <p>Months earlier I'd set up split DNS with a single rule:</p>
+          <pre><code>address=/doof.quest/&lt;proxy&gt;
+server=/&lt;ssh-host&gt;.doof.quest/1.1.1.1</code></pre>
+          <p>dnsmasq's <code>address=</code> is a suffix match. It covers <code>doof.quest</code> itself as well as everything under it. That was fine while nothing lived at the root. The second line was an exception I'd added for SSH, which had hit the same problem. Once Pages took over the root, the wildcard kept pointing it home.</p>
+          <p>The rules lived in Pi-hole v6's <code>pihole.toml</code>, in a setting buried under All settings. The Local DNS page only shows exact records, so it looked clean.</p>
+
+          <h2 id="fix">$ cat fix</h2>
+          <ul>
+            <li>Added every internal service as an exact Local DNS record pointing to the proxy, before touching anything else, so nothing went dark.</li>
+            <li>Cleared <code>misc.dnsmasq_lines</code> completely. The SSH exception isn't needed without the wildcard.</li>
+            <li>Confirmed the root now resolves to Cloudflare at home and the services still resolve to the proxy.</li>
+          </ul>
+
+          <h2 id="lessons">$ cat lessons</h2>
+          <ul>
+            <li><strong>A wildcard plus exceptions is a pattern that keeps growing.</strong> The second time I needed a hole punched in it, it was time to drop it.</li>
+            <li><strong>Check where the config really lives.</strong> In Pi-hole v6 that's <code>pihole.toml</code>. <code>dnsmasq.conf</code> is generated from it and gets overwritten.</li>
+            <li><strong>Compare your resolver with a public one.</strong> Two <code>dig</code> commands narrowed this down faster than anything else.</li>
+          </ul>
+
+        </div>
+      </article>
+    </main>
+
+    <footer class="site-footer" id="contact">
+      <nav aria-label="Contact">
+        <!-- build:footer-links --><a href="mailto:maveealier@gmail.com">mail</a>
+<a href="https://github.com/mfdoof" rel="noopener">github</a>
+<a href="https://www.linkedin.com/in/mave-alier-5499283b2/" rel="noopener">linkedin</a>
+<!-- /build:footer-links -->
+      </nav>
+      <!-- add back when built:
+      <nav aria-label="Site">
+        <a href="/notes/how-this-site-works.html">how-this-site-works.md</a>
+        <a href="/shell/">try the shell &gt;_</a>
+      </nav> -->
+    </footer>
+  </div>
+
+  <div class="statusbar">
+    <nav class="status-left" aria-label="Windows">
+      [doof]
+      <a href="/">0:home</a>
+      <a href="/projects/">1:projects</a>
+      <a href="/notes/" aria-current="page">2:notes*</a>
+      <a href="/about.html">3:about</a>
+    </nav>
+    <div class="status-right">
+      <span class="status-stats">
+        lab up <span data-uptime>—</span> ·
+        <!-- build:note-count -->5 notes
+<!-- /build:note-count --> ·
+      </span>
+      <button class="theme-toggle" type="button" data-theme-toggle aria-label="Toggle light or dark theme">theme</button>
+    </div>
+  </div>
+</body>
+</html>

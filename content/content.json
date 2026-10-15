@@ -100,22 +100,53 @@
       "slug": "pihole-across-vlans",
       "title": "Pi-hole answered one VLAN and ignored the rest",
       "tag": "notes",
-      "topics": ["dns", "networking"],
+      "topics": [
+        "dns",
+        "networking"
+      ],
       "date": "2026-04"
     },
     {
       "slug": "remote-access-cgnat",
       "title": "Remote access to a homelab with no public IP",
       "tag": "howto",
-      "topics": ["networking", "security", "dns"],
+      "topics": [
+        "networking",
+        "security",
+        "dns"
+      ],
       "date": "2026-09-16"
     },
     {
       "slug": "console-outage",
       "title": "Postmortem: when every console said \"Connecting…\"",
       "tag": "postmortem",
-      "topics": ["dns", "reverse-proxy", "proxmox"],
+      "topics": [
+        "dns",
+        "reverse-proxy",
+        "proxmox"
+      ],
       "date": "2026-09-09"
+    },
+    {
+      "slug": "deploy-cloudflare-pages",
+      "title": "Deploying a static portfolio to Cloudflare Pages",
+      "tag": "howto",
+      "topics": [
+        "dns",
+        "security"
+      ],
+      "date": "2026-10-15"
+    },
+    {
+      "slug": "launch-day-dns",
+      "title": "Postmortem: the site worked everywhere but my house",
+      "tag": "postmortem",
+      "topics": [
+        "dns",
+        "reverse-proxy"
+      ],
+      "date": "2026-10-15"
     }
   ],
   "about": [

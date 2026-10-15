@@ -90,7 +90,7 @@
             </svg>
             <figcaption>Two paths in, both started from inside the network.</figcaption>
           </figure>
-          <p><strong>Tailscale</strong> is the main path. A small container acts as a subnet router, so any device on my tailnet can reach the home network. Tailscale's DNS settings send every query to my Pi-hole, which answers <code>*.doof.quest</code> with the reverse proxy. The result is the same URLs and the same certificates, at home or on mobile data.</p>
+          <p><strong>Tailscale</strong> is the main path. A small container acts as a subnet router, so any device on my tailnet can reach the home network. Tailscale's DNS settings send every query to my Pi-hole, which answers each service's name with the reverse proxy. The result is the same URLs and the same certificates, at home or on mobile data.</p>
           <p><strong>Cloudflare Tunnel</strong> is the fallback, for SSH only. A connector container keeps an outbound connection open to Cloudflare. Before anything reaches that tunnel, Cloudflare Access asks for an email one-time PIN, and only my address is allowed. Behind that, the Proxmox host only accepts SSH keys. On my laptop, <code>cloudflared</code> runs as the SSH proxy command, so it's still just <code>ssh doof</code>.</p>
 
           <h2 id="decisions">$ cat decisions</h2>
@@ -105,7 +105,7 @@
           <h2 id="gotchas">$ cat gotchas</h2>
           <ul>
             <li><strong>The wildcard caught the SSH name.</strong> At home, Pi-hole answers every <code>*.doof.quest</code> name with the reverse proxy, including the SSH hostname. The proxy only handles HTTP, so SSH failed at home but worked everywhere else. A more specific dnsmasq rule sends that one name to a public resolver: <pre><code>address=/doof.quest/&lt;proxy&gt;
-server=/&lt;ssh-host&gt;.doof.quest/1.1.1.1</code></pre></li>
+server=/&lt;ssh-host&gt;.doof.quest/1.1.1.1</code></pre> I later dropped the wildcard for one record per service. The <a href="/notes/launch-day-dns.html">launch-day postmortem</a> explains why.</li>
             <li><strong>Password login was still on.</strong> I thought SSH was key-only, but the only <code>PasswordAuthentication</code> line was commented out, and OpenSSH defaults to yes. <code>sshd -T</code> shows the settings actually in effect, not what the file seems to say. A drop-in in <code>sshd_config.d/</code> fixed it.</li>
             <li><strong>The first match wins in <code>~/.ssh/config</code>.</strong> An older <code>Host doof</code> block above the new one meant <code>ssh doof</code> silently skipped the tunnel. <code>ssh -G doof</code> shows what SSH will really use.</li>
             <li><strong>The new host block needed its own key.</strong> Without the <code>IdentityFile</code> line, the tunnel worked but SSH fell back to asking for a password.</li>
@@ -155,7 +155,7 @@ ssh -o PubkeyAuthentication=no doof      # Permission denied (publickey)</code><
     <div class="status-right">
       <span class="status-stats">
         lab up <span data-uptime>—</span> ·
-        <!-- build:note-count -->3 notes
+        <!-- build:note-count -->5 notes
 <!-- /build:note-count --> ·
       </span>
       <button class="theme-toggle" type="button" data-theme-toggle aria-label="Toggle light or dark theme">theme</button>

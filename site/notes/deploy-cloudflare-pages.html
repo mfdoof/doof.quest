@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Deploying a static portfolio to Cloudflare Pages · doof.quest</title>
+  <meta name="description" content="How I deployed this site to Cloudflare Pages with no build step, and what had to be cleared off the root domain first.">
+  <link rel="preload" href="/fonts/JetBrainsMono-Regular.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="/css/style.css">
+  <script src="/js/main.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">skip to content</a>
+
+  <div class="container">
+    <header class="site-header">
+      <a class="prompt" href="/">mave@doof:~$</a>
+      <nav class="site-nav" aria-label="Main">
+        <a href="/projects/">./projects</a>
+        <a href="/notes/" aria-current="page">./notes</a>
+        <a href="/about.html">./about</a>
+        <a href="/resume.pdf" target="_blank" rel="noopener">resume.pdf</a>
+        <a href="#contact">./contact</a>
+      </nav>
+    </header>
+
+    <main id="main">
+      <article>
+        <header class="page-head">
+          <p class="crumbs mono small"><a href="/notes/">~/notes</a> / deploy-cloudflare-pages</p>
+          <div class="card-meta"><!-- build:note-meta -->#howto · #dns #security · 2026-10-15
+<!-- /build:note-meta --></div>
+          <h1>Deploying a static portfolio to Cloudflare Pages</h1>
+          <p class="lead">How this site went from a GitHub repo to doof.quest on Cloudflare Pages: no build step, security headers in the repo, and clearing an apex domain that an old tunnel and Access app were still holding.</p>
+        </header>
+        <div class="prose">
+
+          <h2 id="goal">$ cat goal</h2>
+          <ul>
+            <li>Serve this portfolio at <code>doof.quest</code> from Cloudflare Pages, so it stays up even when the homelab doesn't.</li>
+            <li>Keep the deploy boring: push to <code>main</code> and the site updates.</li>
+            <li>Leave SSH remote access and the internal services exactly as they were.</li>
+          </ul>
+
+          <h2 id="design">$ cat design</h2>
+          <p>The site is plain HTML, CSS and JS. A small Node script fills the pages from a data file, and I commit its output in <code>site/</code>. Pages pulls the repo from GitHub and serves that folder as is. Cloudflare doesn't run a build step, so what I test locally is exactly what goes live.</p>
+          <p>The domain already lived on Cloudflare, so attaching it was one CNAME at the root pointing to the project's <code>pages.dev</code> address. Cloudflare flattens it into real IPs, which is what makes a CNAME legal at the apex.</p>
+
+          <h2 id="decisions">$ cat decisions</h2>
+          <ul>
+            <li><strong>Pages, not Workers.</strong> The dashboard now steers new projects to Workers, which wants a <code>wrangler</code> config and an API token. For a folder of static files, Pages needs neither. It sits behind a small "Continue to Pages" link at the bottom of the create screen.</li>
+            <li><strong>No build command.</strong> Framework preset None, build command empty, output directory <code>site</code>. Only that folder is published. The build script and source data stay in the repo but never get served.</li>
+            <li><strong>Security headers in a <code>_headers</code> file.</strong> CSP, HSTS, framing and referrer rules live in the repo next to the pages, so they're versioned with everything else.</li>
+          </ul>
+
+          <h2 id="gotchas">$ cat gotchas</h2>
+          <ul>
+            <li><strong>The root was already taken.</strong> An old Access application put a login in front of <code>doof.quest</code>, and a leftover tunnel route held the root with a CNAME. I deleted the Access app and the route, kept the SSH app and route, and checked that SSH still worked from outside before going further.</li>
+            <li><strong>Deleting a tunnel route doesn't always delete its DNS record.</strong> Check the DNS page afterwards, or Pages can't claim the name.</li>
+            <li><strong>Tunnels moved.</strong> They're under Networking now, not Zero Trust.</li>
+            <li><strong>It worked everywhere except my house.</strong> A wildcard rule in Pi-hole still sent the root to my reverse proxy. That one got its own <a href="/notes/launch-day-dns.html">postmortem</a>.</li>
+          </ul>
+
+          <h2 id="verify">$ cat verify</h2>
+          <pre><code>dig +short doof.quest               # Cloudflare IPs, at home too
+dig +short doof.quest @1.1.1.1      # same answer
+curl -sI https://doof.quest | grep -i strict-transport</code></pre>
+          <p>securityheaders.com gives it an A+.</p>
+
+          <h2 id="lessons">$ cat lessons</h2>
+          <ul>
+            <li><strong>Clear the name before you claim it.</strong> Access apps, tunnel routes and DNS records can all hold the apex, and each one lives on a different page.</li>
+            <li><strong>Test from two networks.</strong> From outside it looked finished. Only the home network showed the Pi-hole problem.</li>
+          </ul>
+
+        </div>
+      </article>
+    </main>
+
+    <footer class="site-footer" id="contact">
+      <nav aria-label="Contact">
+        <!-- build:footer-links --><a href="mailto:maveealier@gmail.com">mail</a>
+<a href="https://github.com/mfdoof" rel="noopener">github</a>
+<a href="https://www.linkedin.com/in/mave-alier-5499283b2/" rel="noopener">linkedin</a>
+<!-- /build:footer-links -->
+      </nav>
+      <!-- add back when built:
+      <nav aria-label="Site">
+        <a href="/notes/how-this-site-works.html">how-this-site-works.md</a>
+        <a href="/shell/">try the shell &gt;_</a>
+      </nav> -->
+    </footer>
+  </div>
+
+  <div class="statusbar">
+    <nav class="status-left" aria-label="Windows">
+      [doof]
+      <a href="/">0:home</a>
+      <a href="/projects/">1:projects</a>
+      <a href="/notes/" aria-current="page">2:notes*</a>
+      <a href="/about.html">3:about</a>
+    </nav>
+    <div class="status-right">
+      <span class="status-stats">
+        lab up <span data-uptime>—</span> ·
+        <!-- build:note-count -->5 notes
+<!-- /build:note-count --> ·
+      </span>
+      <button class="theme-toggle" type="button" data-theme-toggle aria-label="Toggle light or dark theme">theme</button>
+    </div>
+  </div>
+</body>
+</html>
