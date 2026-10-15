@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>mac-lab · doof.quest</title>
+  <meta name="description" content="Setting up and documenting a 30-Mac university lab during my internship: static IPs, MDM enrollment, updates and a content cache.">
+  <link rel="preload" href="/fonts/JetBrainsMono-Regular.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="/css/style.css?v=6c403054">
+  <script src="/js/main.js?v=73752b0e" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">skip to content</a>
+
+  <div class="container">
+    <header class="site-header">
+      <a class="prompt" href="/">mave@doof:~$</a>
+      <nav class="site-nav" aria-label="Main">
+        <a href="/projects/" aria-current="page">./projects</a>
+        <a href="/notes/">./notes</a>
+        <a href="/about.html">./about</a>
+        <a href="/resume.pdf" target="_blank" rel="noopener">resume.pdf</a>
+        <a href="#contact">./contact</a>
+      </nav>
+    </header>
+
+    <main id="main">
+      <article>
+        <header class="page-head">
+          <p class="crumbs mono small"><a href="/projects/">~/projects</a> / mac-lab</p>
+          <div class="card-meta">drwxr-xr-x · #infra · started 2026-09-16 · internship</div>
+          <h1>mac-lab/</h1>
+          <p class="lead">My internship task at the University of San Carlos was to get a 30-Mac lab into a state where anyone on the IT team could run it. I configured the machines, wrote a script that cut setup to a few minutes per Mac, and wrote runbooks for the team.</p>
+          <ul class="tag-row mono small">
+            <li>macOS</li><li>MDM</li><li>bash</li><li>networking</li>
+          </ul>
+        </header>
+
+        <div class="prose">
+
+          <figure class="diagram media-center">
+            <img src="/img/mac-lab-install.webp" width="1600" height="1200" loading="lazy" alt="Two Mac minis on a lab desk, each connected to a monitor showing the macOS installer running package scripts.">
+            <figcaption>Two lab Macs mid-install.</figcaption>
+          </figure>
+
+          <h2 id="task">$ cat task</h2>
+          <p>The lab has 30 Mac minis. They came out of resets with default names and random DHCP addresses, so nobody could tell which machine was which over the network. They also needed to be enrolled in Mosyle, the school's MDM, and kept up to date without downloading the same macOS installer 30 times.</p>
+
+          <h2 id="work">$ cat work</h2>
+          <ul>
+            <li>Gave every Mac a hostname and static IP that follow its seat number, so seat 21 always has the same name and address.</li>
+            <li>Wrote <code>labfix.sh</code> to apply the name, IP and DNS settings, either at the Mac or over SSH.</li>
+            <li>Enrolled the Macs in Mosyle and pushed macOS updates from the console.</li>
+            <li>Turned one Mac into a content cache. The lab downloads updates from it instead of the internet, and it holds about 32 GB of Apple content so far.</li>
+            <li>Documented it all as runbooks, decision records, reference notes and a change log, so the next person doesn't depend on me.</li>
+          </ul>
+
+          <h2 id="script">$ cat labfix.sh</h2>
+          <p>A few parts worth pointing out:</p>
+<pre><code># Stop if DNS disagrees with the IP we're about to set
+[ "$DNSIP" != "$IP" ] &amp;&amp; { echo "!! DNS mismatch, stopping."; exit 1; }
+
+# Stop if something already answers on the target IP
+if [ "$CURIP" != "$IP" ] &amp;&amp; ping -c 2 -t 2 "$IP" &gt;/dev/null 2&gt;&amp;1; then
+  echo "!! $IP is already in use by another device, stopping."; exit 1
+fi
+
+# Ignore hangup so the SSH drop can't kill the IP change
+trap '' HUP</code></pre>
+          <p>The script checks before it changes anything. It confirms that DNS agrees with the target IP and that no other device is already using it. Changing a Mac's IP over SSH cuts your own connection, and an early version died halfway through because of that. Ignoring the hangup signal fixed it.</p>
+
+          <h2 id="decisions">$ cat decisions</h2>
+          <p>Without Apple School Manager, the MDM can't force major macOS upgrades on these Macs. I compared three options (upgrading by hand, a scripted upgrade through the MDM, or waiting for Apple School Manager), picked one, and wrote down the tradeoffs and when to revisit it.</p>
+
+          <h2 id="lessons">$ cat lessons</h2>
+          <ul>
+            <li><code>networksetup -setmanual</code> quietly clears the DNS search domain. I found that out after a few Macs stopped resolving short names.</li>
+            <li>The content cache fails silently. If the cache Mac is asleep, clients just go to the internet, so it has to stay awake.</li>
+            <li>Documentation was half the job. A setup only one person understands isn't finished.</li>
+          </ul>
+
+          <figure class="diagram media-center">
+            <video src="/img/mac-lab-loop.mp4?v=43" poster="/img/mac-lab-loop-poster.webp?v=43" width="720" height="540" autoplay muted loop playsinline aria-label="Short muted clip of me working at a lab workstation."></video>
+            <figcaption>Working through the row of Macs.</figcaption>
+          </figure>
+
+        </div>
+      </article>
+    </main>
+
+    <footer class="site-footer" id="contact">
+      <nav aria-label="Contact">
+        <!-- build:footer-links --><a href="mailto:maveealier@gmail.com">mail</a>
+<a href="https://github.com/mfdoof" rel="noopener">github</a>
+<a href="https://www.linkedin.com/in/mave-alier-5499283b2/" rel="noopener">linkedin</a>
+<!-- /build:footer-links -->
+      </nav>
+      <nav aria-label="Site">
+        <a href="/notes/how-this-site-works.html">how-this-site-works.md</a>
+        <!-- add back when built: <a href="/shell/">try the shell &gt;_</a> -->
+      </nav>
+    </footer>
+  </div>
+
+  <div class="statusbar">
+    <nav class="status-left" aria-label="Windows">
+      [doof]
+      <a href="/">0:home</a>
+      <a href="/projects/" aria-current="page">1:projects*</a>
+      <a href="/notes/">2:notes</a>
+      <a href="/about.html">3:about</a>
+    </nav>
+    <div class="status-right">
+      <span class="status-stats">
+        lab up <span data-uptime>—</span> ·
+        <!-- build:note-count -->9 notes
+<!-- /build:note-count --> ·
+      </span>
+      <button class="theme-toggle" type="button" data-theme-toggle aria-label="Toggle light or dark theme">theme</button>
+    </div>
+  </div>
+</body>
+</html>

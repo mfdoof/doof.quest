@@ -396,3 +396,9 @@ pre {
 .d-sub   { fill: var(--text-muted); font-family: var(--font-mono); font-size: 10.5px; }
 
 .mt-section { margin-top: 40px; }
+
+.prose video { display: block; max-width: 100%; height: auto; }
+.media-center { text-align: center; }
+.media-center img { display: block; max-width: 100%; height: auto; margin-inline: auto; }
+.media-center video { display: block; max-width: min(100%, 560px); height: auto; margin-inline: auto; }
+.media-portrait figcaption { text-align: center; }
