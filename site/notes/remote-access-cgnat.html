@@ -39,7 +39,7 @@
           <h2 id="goal">$ cat goal</h2>
           <ul>
             <li>Reach my self-hosted services from anywhere at the same <code>https://&lt;service&gt;.doof.quest</code> URLs I use at home, with valid certificates.</li>
-            <li>SSH into the Proxmox host from restrictive networks too, like school Wi-Fi, where Tailscale can be blocked.</li>
+            <li>SSH into the Proxmox host from restrictive networks too, where Tailscale can be blocked.</li>
             <li>Zero inbound ports. Every connection starts from inside my network.</li>
           </ul>
 
@@ -95,7 +95,7 @@
 
           <h2 id="decisions">$ cat decisions</h2>
           <ul>
-            <li><strong>Two paths, not one.</strong> Tailscale covers everything but can be blocked. The tunnel works anywhere HTTPS does, so I kept it as narrow as possible: one service.</li>
+            <li><strong>Two paths, not one.</strong> Tailscale covers everything but can be blocked. The tunnel works anywhere HTTPS does, and I've tested it on a restricted network. Because it's reachable from anywhere, I kept it as narrow as possible: one service.</li>
             <li><strong>The web UI stays off the tunnel.</strong> The Proxmox web UI is only reachable on the LAN or over Tailscale.</li>
             <li><strong>Access before the route.</strong> I created the Access policy first and the tunnel route second, so the hostname was never reachable without the PIN in front.</li>
             <li><strong>Exact email match.</strong> The policy matches my email address exactly, not "emails ending in", which would let in anyone on the same email domain.</li>

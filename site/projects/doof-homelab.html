@@ -135,8 +135,8 @@
           </table>
 
           <h2 id="network">$ cat network</h2>
-          <p>The network runs on an Omada stack (ER605 router, managed switch, wall AP) split into Admin, Server, Guest, and IoT VLANs. The default VLAN only holds the router.</p>
-          <p>The ACLs needed a full rebuild. I'd written them assuming the router tracked connections between LAN segments, and it doesn't: LAN-to-LAN rules on the ER605 are stateless, so a one-way permit silently broke return traffic. The rebuilt set has explicit permits in both directions where needed, lets guest and IoT devices reach Pi-hole on port 53 and nothing else, and ends with a blanket guest-to-LAN deny. Pi-hole is targeted with a /32 IP group, not a whole subnet.</p>
+          <p>The network runs on an Omada stack (router, managed switch, wall AP) split into Admin, Server, Guest, and IoT VLANs. The default VLAN only holds the router.</p>
+          <p>The ACLs needed a full rebuild. I'd written them assuming the router tracked connections between LAN segments, and it doesn't: LAN-to-LAN rules on the router are stateless, so a one-way permit silently broke return traffic. The rebuilt set has explicit permits in both directions where needed, lets guest and IoT devices reach Pi-hole on port 53 and nothing else, and ends with a blanket guest-to-LAN deny. Pi-hole is targeted with a /32 IP group, not a whole subnet.</p>
           <p>I learned one DNS lesson from my own laptop. The router was handing out Pi-hole plus 1.1.1.1 as a fallback, and macOS quietly preferred the fallback, so its queries never touched Pi-hole. DHCP now hands out Pi-hole only.</p>
 
           <h2 id="https">$ cat internal-https</h2>
