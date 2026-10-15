@@ -2,7 +2,7 @@
   "site": {
     "name": "Maverick",
     "handle": "mave@doof",
-    "headline": "Maverick — homelab-trained sysadmin focused on security and automation.",
+    "headline": "Entry-level sysadmin running a self-hosted lab: networking, DNS, monitoring and security",
     "lead": "I run a Proxmox homelab behind CGNAT, which I segmented, secured and monitor myself, and I've broken and fixed most of it along the way. Now looking for an entry-level IT role, remote or on-site, with a long-term focus on systems and security.",
     "motd": "Welcome to doof.quest — uptime > ego. logs > guesses.",
     "links": {
@@ -147,6 +147,37 @@
         "reverse-proxy"
       ],
       "date": "2026-10-15"
+    },
+    {
+      "slug": "reverse-proxy-split-dns",
+      "title": "Internal HTTPS with split DNS and a reverse proxy",
+      "tag": "howto",
+      "topics": [
+        "dns",
+        "reverse-proxy",
+        "security"
+      ],
+      "date": "2026-05"
+    },
+    {
+      "slug": "monitoring-stack",
+      "title": "Monitoring a Proxmox homelab with Prometheus and Grafana",
+      "tag": "howto",
+      "topics": [
+        "monitoring",
+        "proxmox"
+      ],
+      "date": "2026-10"
+    },
+    {
+      "slug": "container-vlan-tag",
+      "title": "A container with no network: tagged twice",
+      "tag": "notes",
+      "topics": [
+        "networking",
+        "proxmox"
+      ],
+      "date": "2026-07"
     }
   ],
   "about": [

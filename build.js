@@ -275,6 +275,7 @@ function main() {
   buildFile('index.html', {
     ...shared,
     motd: esc(site.motd),
+    'hero-name': esc(site.name),
     headline: esc(site.headline),
     lead: esc(site.lead),
     stack: renderStack(stack),
