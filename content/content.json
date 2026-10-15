@@ -97,6 +97,13 @@
   ],
   "notes": [
     {
+      "slug": "pihole-across-vlans",
+      "title": "Pi-hole answered one VLAN and ignored the rest",
+      "tag": "notes",
+      "topics": ["dns", "networking"],
+      "date": "2026-04"
+    },
+    {
       "slug": "remote-access-cgnat",
       "title": "Remote access to a homelab with no public IP",
       "tag": "howto",

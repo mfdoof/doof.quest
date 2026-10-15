@@ -126,7 +126,7 @@ function validate(content) {
     for (const field of ['slug', 'title', 'tag', 'date']) {
       if (!n[field]) fail(`note "${n.slug || n.title}": missing "${field}"`);
     }
-    if (!DATE.test(n.date)) fail(`note "${n.slug}": bad date "${n.date}" (use YYYY-MM-DD)`);
+    if (!DATE.test(n.date) && !/^\d{4}-\d{2}$/.test(n.date)) fail(`note "${n.slug}": bad date "${n.date}" (use YYYY-MM-DD, or YYYY-MM if the day is unknown)`);
     if (!NOTE_TYPES.includes(n.tag)) fail(`note "${n.slug}": tag "${n.tag}" must be one of ${NOTE_TYPES.join(', ')}`);
     const topics = n.topics || [];
     if (topics.length > 3) fail(`note "${n.slug}": max 3 topics`);
