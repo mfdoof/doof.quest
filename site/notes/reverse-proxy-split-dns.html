@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Internal HTTPS with split DNS and a reverse proxy · doof.quest</title>
+  <meta name="description" content="How my homelab services get real HTTPS names with split DNS in Pi-hole, a wildcard certificate and Nginx Proxy Manager, with no open ports.">
+  <link rel="preload" href="/fonts/JetBrainsMono-Regular.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="/css/style.css">
+  <script src="/js/main.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">skip to content</a>
+
+  <div class="container">
+    <header class="site-header">
+      <a class="prompt" href="/">mave@doof:~$</a>
+      <nav class="site-nav" aria-label="Main">
+        <a href="/projects/">./projects</a>
+        <a href="/notes/" aria-current="page">./notes</a>
+        <a href="/about.html">./about</a>
+        <a href="/resume.pdf" target="_blank" rel="noopener">resume.pdf</a>
+        <a href="#contact">./contact</a>
+      </nav>
+    </header>
+
+    <main id="main">
+      <article>
+        <header class="page-head">
+          <p class="crumbs mono small"><a href="/notes/">~/notes</a> / reverse-proxy-split-dns</p>
+          <div class="card-meta"><!-- build:note-meta -->#howto · #dns #reverse-proxy #security · 2026-05
+<!-- /build:note-meta --></div>
+          <h1>Internal HTTPS with split DNS and a reverse proxy</h1>
+          <p class="lead">Every service in my homelab has its own https://&lt;service&gt;.doof.quest address with a valid certificate, and none of those names exist on the public internet. Pi-hole points them at Nginx Proxy Manager, which holds one wildcard certificate and routes by hostname.</p>
+        </header>
+        <div class="prose">
+
+          <h2 id="goal">$ cat goal</h2>
+          <ul>
+            <li>Open every self-hosted service at <code>https://&lt;service&gt;.doof.quest</code> with a valid certificate, instead of an IP and a port number.</li>
+            <li>Keep it all internal. No inbound ports, and nothing in public DNS that points at my house.</li>
+            <li>Use the same URLs at home and away.</li>
+          </ul>
+
+          <h2 id="design">$ cat design</h2>
+          <figure class="diagram">
+            <svg viewBox="0 0 720 150" role="img" aria-labelledby="rp-title rp-desc">
+              <title id="rp-title">Split DNS and reverse proxy request flow</title>
+              <desc id="rp-desc">A browser asks Pi-hole for a service name. Pi-hole answers with the reverse proxy's address. The browser connects to the reverse proxy over HTTPS using a wildcard certificate, and the proxy forwards the request to the right service based on the hostname.</desc>
+              <rect class="d-node" x="10" y="40" width="140" height="56"/>
+              <text class="d-text" x="80" y="64" text-anchor="middle">browser</text>
+              <text class="d-sub" x="80" y="81" text-anchor="middle">LAN or Tailscale</text>
+              <line class="d-line d-dash" x1="150" y1="68" x2="200" y2="68"/>
+              <rect class="d-node" x="200" y="40" width="140" height="56"/>
+              <text class="d-text" x="270" y="64" text-anchor="middle">Pi-hole</text>
+              <text class="d-sub" x="270" y="81" text-anchor="middle">name → proxy</text>
+              <line class="d-line" x1="340" y1="68" x2="390" y2="68"/>
+              <rect class="d-node d-accent" x="390" y="40" width="150" height="56"/>
+              <text class="d-text" x="465" y="64" text-anchor="middle">reverse proxy</text>
+              <text class="d-sub" x="465" y="81" text-anchor="middle">*.doof.quest cert</text>
+              <line class="d-line" x1="540" y1="68" x2="580" y2="68"/>
+              <rect class="d-node" x="580" y="40" width="130" height="56"/>
+              <text class="d-text" x="645" y="64" text-anchor="middle">service</text>
+              <text class="d-sub" x="645" y="81" text-anchor="middle">by hostname</text>
+              <text class="d-label" x="175" y="125" text-anchor="middle">1. lookup</text>
+              <text class="d-label" x="465" y="125" text-anchor="middle">2. HTTPS</text>
+            </svg>
+            <figcaption>Pi-hole decides where the name goes. The proxy decides which service answers.</figcaption>
+          </figure>
+          <p><strong>The certificate.</strong> Nginx Proxy Manager requests one wildcard certificate for <code>*.doof.quest</code> from Let's Encrypt using the DNS-01 challenge. Let's Encrypt never has to reach my network. It checks a TXT record that NPM creates through the Cloudflare API, which works fine behind CGNAT.</p>
+          <p><strong>The names.</strong> Pi-hole has one local DNS record per service, each pointing at the proxy. Nothing about these names exists in public DNS.</p>
+          <p><strong>The routing.</strong> NPM has a proxy host for each name that forwards to the service's real address and port, all using the same wildcard certificate.</p>
+          <p><strong>Away from home.</strong> Tailscale hands out Pi-hole as the DNS server, so the same names resolve the same way on mobile data. The <a href="/notes/remote-access-cgnat.html">remote access note</a> covers that side.</p>
+
+          <h2 id="decisions">$ cat decisions</h2>
+          <ul>
+            <li><strong>DNS-01, not HTTP-01.</strong> HTTP-01 needs port 80 open to the internet. DNS-01 needs nothing open, and it's the only way to get a wildcard certificate.</li>
+            <li><strong>A scoped API token.</strong> The token NPM uses can edit DNS on this one zone and read it, and that's all. If it leaks, it can't touch the rest of the account.</li>
+            <li><strong>One record per service.</strong> I started with a single dnsmasq wildcard. It was less typing, but it also caught names I didn't mean it to, so I replaced it with exact records.</li>
+          </ul>
+
+          <h2 id="gotchas">$ cat gotchas</h2>
+          <ul>
+            <li><strong>Pi-hole behind the proxy returned 502.</strong> I pointed NPM at Pi-hole's HTTPS port, and Pi-hole's own certificate is self-signed, so the proxy refused the connection. Forwarding to plain HTTP on port 80 fixed it. The proxy still handles TLS for the browser.</li>
+            <li><strong>The Proxmox console needs WebSockets.</strong> A record that sent the Proxmox name straight to the host, skipping the proxy, broke every console. The proxy host needs "Websockets Support" turned on. Full story in the <a href="/notes/console-outage.html">console postmortem</a>.</li>
+            <li><strong>Wildcards catch more than you think.</strong> My old dnsmasq wildcard matched the bare domain too, which bit me the day this site went live. See the <a href="/notes/launch-day-dns.html">launch-day postmortem</a>.</li>
+            <li><strong>A fallback DNS server defeats split DNS.</strong> When the router also advertised a public resolver, macOS could skip Pi-hole entirely. The router now hands out Pi-hole only.</li>
+          </ul>
+
+          <h2 id="verify">$ cat verify</h2>
+          <pre><code>dig +short grafana.doof.quest           # the proxy's address
+dig +short grafana.doof.quest @1.1.1.1  # nothing
+curl -sI https://grafana.doof.quest | head -1</code></pre>
+
+          <h2 id="lessons">$ cat lessons</h2>
+          <ul>
+            <li><strong>Internal HTTPS doesn't need open ports.</strong> DNS-01 gets a real certificate for names the internet can't even resolve.</li>
+            <li><strong>Exact records are easier to reason about.</strong> When something resolves wrong, the Pi-hole UI shows every record that could be responsible.</li>
+          </ul>
+
+        </div>
+      </article>
+    </main>
+
+    <footer class="site-footer" id="contact">
+      <nav aria-label="Contact">
+        <!-- build:footer-links --><a href="mailto:maveealier@gmail.com">mail</a>
+<a href="https://github.com/mfdoof" rel="noopener">github</a>
+<a href="https://www.linkedin.com/in/mave-alier-5499283b2/" rel="noopener">linkedin</a>
+<!-- /build:footer-links -->
+      </nav>
+      <!-- add back when built:
+      <nav aria-label="Site">
+        <a href="/notes/how-this-site-works.html">how-this-site-works.md</a>
+        <a href="/shell/">try the shell &gt;_</a>
+      </nav> -->
+    </footer>
+  </div>
+
+  <div class="statusbar">
+    <nav class="status-left" aria-label="Windows">
+      [doof]
+      <a href="/">0:home</a>
+      <a href="/projects/">1:projects</a>
+      <a href="/notes/" aria-current="page">2:notes*</a>
+      <a href="/about.html">3:about</a>
+    </nav>
+    <div class="status-right">
+      <span class="status-stats">
+        lab up <span data-uptime>—</span> ·
+        <!-- build:note-count -->8 notes
+<!-- /build:note-count --> ·
+      </span>
+      <button class="theme-toggle" type="button" data-theme-toggle aria-label="Toggle light or dark theme">theme</button>
+    </div>
+  </div>
+</body>
+</html>

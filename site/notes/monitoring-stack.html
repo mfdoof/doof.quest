@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Monitoring a Proxmox homelab with Prometheus and Grafana · doof.quest</title>
+  <meta name="description" content="Prometheus, node_exporter, pve-exporter and Grafana monitoring a Proxmox homelab, with Discord alerts written as mini runbooks.">
+  <link rel="preload" href="/fonts/JetBrainsMono-Regular.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="/css/style.css">
+  <script src="/js/main.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">skip to content</a>
+
+  <div class="container">
+    <header class="site-header">
+      <a class="prompt" href="/">mave@doof:~$</a>
+      <nav class="site-nav" aria-label="Main">
+        <a href="/projects/">./projects</a>
+        <a href="/notes/" aria-current="page">./notes</a>
+        <a href="/about.html">./about</a>
+        <a href="/resume.pdf" target="_blank" rel="noopener">resume.pdf</a>
+        <a href="#contact">./contact</a>
+      </nav>
+    </header>
+
+    <main id="main">
+      <article>
+        <header class="page-head">
+          <p class="crumbs mono small"><a href="/notes/">~/notes</a> / monitoring-stack</p>
+          <div class="card-meta"><!-- build:note-meta -->#howto · #monitoring #proxmox · 2026-10
+<!-- /build:note-meta --></div>
+          <h1>Monitoring a Proxmox homelab with Prometheus and Grafana</h1>
+          <p class="lead">One container runs Prometheus and Grafana, pulls metrics from the Proxmox host and every guest, and sends alerts to Discord with a short runbook in each one.</p>
+        </header>
+        <div class="prose">
+
+          <h2 id="goal">$ cat goal</h2>
+          <ul>
+            <li>See how the Proxmox host and every guest are doing without logging in to check.</li>
+            <li>Get a message when something breaks or is about to, instead of finding out when a service stops loading.</li>
+          </ul>
+
+          <h2 id="design">$ cat design</h2>
+          <p>Everything runs in one container. Prometheus pulls metrics every 15 seconds from three exporters:</p>
+          <ul>
+            <li><strong>node_exporter on the host</strong> for CPU, memory, disks, temperatures and network.</li>
+            <li><strong>node_exporter in the container</strong> so the monitoring box watches itself.</li>
+            <li><strong>pve-exporter</strong> for per-guest stats from the Proxmox API, using a read-only token with the <code>PVEAuditor</code> role.</li>
+          </ul>
+          <p>Grafana sits on top with one custom dashboard, reached through the reverse proxy over HTTPS. Alerts go to a Discord channel.</p>
+          <figure class="diagram">
+            <img src="/img/grafana-dashboard.webp" width="1600" height="788" loading="lazy" alt="Grafana dashboard. A health row shows gauges for CPU busy at 4.4 percent, RAM used at 71.8 percent, root filesystem at 36.6 percent and CPU temperature at 45.1 percent, plus one pending update and 1.6 weeks of uptime. Below it, 24-hour trend graphs show CPU, memory, network traffic per bridge and disk space used.">
+            <figcaption>The health row answers "is anything wrong" at a glance. The trends below show what changed.</figcaption>
+          </figure>
+
+          <h2 id="decisions">$ cat decisions</h2>
+          <ul>
+            <li><strong>Pull, not push.</strong> Prometheus asks each target for metrics. If a target stops answering, that's an alert on its own.</li>
+            <li><strong>Read-only everything.</strong> The Proxmox token can look but not change anything. The host exporter is firewalled so only the monitoring container can reach it.</li>
+            <li><strong>Alerts that say what to do.</strong> Each alert's description is a short runbook: what it means and the first thing to check.</li>
+            <li><strong>Alert on what actually hurts.</strong> Target down, storage or root filesystem over 85%, CPU temperature over 85°C, RAM over 90%, and any guest set to start on boot that isn't running.</li>
+          </ul>
+
+          <h2 id="gotchas">$ cat gotchas</h2>
+          <ul>
+            <li><strong>An exporter died after I hardened it.</strong> I'd typed the listen-address flag wrong. <code>systemctl status</code> said it failed. <code>journalctl</code> said why.</li>
+            <li><strong>An alert fired for healthy targets.</strong> I'd written "above 0" where I meant "below 1". Now I preview every rule against real data before saving it.</li>
+            <li><strong>Grafana looked down on first start.</strong> It was running database migrations on a slow HDD. It just needed a few minutes.</li>
+          </ul>
+
+          <h2 id="verify">$ cat verify</h2>
+          <p>I stopped an exporter on purpose and watched the alert go Pending, then Firing, then land in Discord, then Resolved when I started it again.</p>
+          <pre><code>promtool check config prometheus.yml
+ss -tlnp | grep exporter          # listening where expected</code></pre>
+
+          <h2 id="lessons">$ cat lessons</h2>
+          <ul>
+            <li><strong>Test the alert, not just the rule.</strong> A rule that looks right can still fire all the time or never.</li>
+            <li><strong>Monitoring pays off fast.</strong> In the first week it showed me disk I/O spikes on the HDD and how much memory I'd promised my guests compared to what the host has.</li>
+          </ul>
+
+        </div>
+      </article>
+    </main>
+
+    <footer class="site-footer" id="contact">
+      <nav aria-label="Contact">
+        <!-- build:footer-links --><a href="mailto:maveealier@gmail.com">mail</a>
+<a href="https://github.com/mfdoof" rel="noopener">github</a>
+<a href="https://www.linkedin.com/in/mave-alier-5499283b2/" rel="noopener">linkedin</a>
+<!-- /build:footer-links -->
+      </nav>
+      <!-- add back when built:
+      <nav aria-label="Site">
+        <a href="/notes/how-this-site-works.html">how-this-site-works.md</a>
+        <a href="/shell/">try the shell &gt;_</a>
+      </nav> -->
+    </footer>
+  </div>
+
+  <div class="statusbar">
+    <nav class="status-left" aria-label="Windows">
+      [doof]
+      <a href="/">0:home</a>
+      <a href="/projects/">1:projects</a>
+      <a href="/notes/" aria-current="page">2:notes*</a>
+      <a href="/about.html">3:about</a>
+    </nav>
+    <div class="status-right">
+      <span class="status-stats">
+        lab up <span data-uptime>—</span> ·
+        <!-- build:note-count -->8 notes
+<!-- /build:note-count --> ·
+      </span>
+      <button class="theme-toggle" type="button" data-theme-toggle aria-label="Toggle light or dark theme">theme</button>
+    </div>
+  </div>
+</body>
+</html>

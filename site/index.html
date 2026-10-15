@@ -28,18 +28,20 @@
 
       <!-- ===== hero ===== -->
       <section class="hero">
-        <div>
-          <div class="motd">
-            <!-- build:motd -->Welcome to doof.quest — uptime &gt; ego. logs &gt; guesses.
+        <div class="motd">
+          <!-- build:motd -->Welcome to doof.quest — uptime &gt; ego. logs &gt; guesses.
 <!-- /build:motd --><br>
-            Last login: <span data-last-login>Sun Oct 11 09:14</span> from tty1
-          </div>
+          Last login: <span data-last-login>Sun Oct 11 09:14</span> from tty1
+        </div>
+        <div>
 
           <p class="cmd">whoami<span class="cur" aria-hidden="true"></span></p>
-          <h1>
-            <!-- build:headline -->Maverick — homelab-trained sysadmin focused on security and automation.
+          <h1><!-- build:hero-name -->Maverick
+<!-- /build:hero-name --></h1>
+          <p class="tagline">
+            <!-- build:headline -->Entry-level sysadmin running a self-hosted lab: networking, DNS, monitoring and security
 <!-- /build:headline -->
-          </h1>
+          </p>
           <p class="lead">
             <!-- build:lead -->I run a Proxmox homelab behind CGNAT, which I segmented, secured and monitor myself, and I&#39;ve broken and fixed most of it along the way. Now looking for an entry-level IT role, remote or on-site, with a long-term focus on systems and security.
 <!-- /build:lead -->
@@ -53,43 +55,62 @@
 
         <figure class="hero-figure diagram">
           <a href="/projects/doof-homelab.html" class="hero-diagram-link" aria-label="doof homelab architecture, open the full write-up">
-            <svg viewBox="0 0 400 380" role="img" aria-labelledby="hd-title hd-desc">
+            <svg viewBox="0 0 400 392" role="img" aria-labelledby="hd-title hd-desc">
               <title id="hd-title">doof homelab, simplified</title>
-              <desc id="hd-desc">Remote access comes in through Cloudflare or Tailscale over outbound-only connections, since the ISP uses CGNAT. Both reach the doof Proxmox host, which runs Pi-hole, Nginx Proxy Manager, self-hosted apps and monitoring. Home devices sit on separate VLANs.</desc>
+              <desc id="hd-desc">The ISP uses CGNAT, so nothing connects in. A Cloudflare tunnel carries SSH to the doof Proxmox host, and Tailscale routes into the lab with Pi-hole as DNS, both over outbound-only connections. The host runs Nginx Proxy Manager for TLS, self-hosted apps on ZFS, Pi-hole and Prometheus monitoring. Home devices sit on separate VLANs with ACLs.</desc>
 
-              <rect class="d-zone" x="6" y="6" width="388" height="70"/>
-              <text class="d-label" x="18" y="26">internet</text>
-              <rect class="d-node d-accent" x="30" y="34" width="150" height="32"/>
-              <text class="d-text" x="105" y="55" text-anchor="middle">Cloudflare</text>
-              <rect class="d-node" x="220" y="34" width="150" height="32"/>
-              <text class="d-text" x="295" y="55" text-anchor="middle">Tailscale</text>
+              <rect class="d-zone" x="6" y="6" width="388" height="76"/>
+              <rect class="d-bar" x="6" y="6" width="388" height="20"/>
+              <text class="d-label" x="16" y="20">[internet]</text>
+              <circle class="d-dot" cx="366" cy="16" r="2.5"/>
+              <circle class="d-dot" cx="376" cy="16" r="2.5"/>
+              <circle class="d-dot" cx="386" cy="16" r="2.5"/>
+              <rect class="d-node d-accent" x="30" y="38" width="150" height="32"/>
+              <text class="d-text" x="105" y="59" text-anchor="middle">Cloudflare</text>
+              <rect class="d-node" x="220" y="38" width="150" height="32"/>
+              <text class="d-text" x="295" y="59" text-anchor="middle">Tailscale</text>
 
-              <line class="d-wall" x1="6" y1="92" x2="394" y2="92"/>
-              <text class="d-sub" x="200" y="110" text-anchor="middle">CGNAT · zero inbound ports</text>
+              <line class="d-wall" x1="6" y1="96" x2="394" y2="96"/>
+              <text class="d-sub" x="200" y="114" text-anchor="middle">CGNAT · zero inbound ports</text>
 
-              <line class="d-line d-dash" x1="105" y1="66" x2="105" y2="158"/>
-              <line class="d-line d-dash" x1="295" y1="66" x2="295" y2="158"/>
+              <line class="d-line d-dash d-flow" x1="105" y1="70" x2="105" y2="128"/>
+              <text class="d-sub" x="112" y="88">ssh</text>
+              <line class="d-line d-dash d-flow" x1="295" y1="70" x2="295" y2="162"/>
+              <text class="d-sub" x="302" y="88">wg · dns</text>
 
-              <rect class="d-zone d-host" x="6" y="124" width="388" height="152"/>
-              <text class="d-label" x="18" y="144">doof · Proxmox</text>
-              <rect class="d-node" x="30" y="158" width="150" height="40"/>
-              <text class="d-text" x="105" y="183" text-anchor="middle">NPM · TLS</text>
-              <rect class="d-node" x="220" y="158" width="150" height="40"/>
-              <text class="d-text" x="295" y="183" text-anchor="middle">Pi-hole DNS</text>
-              <rect class="d-node" x="30" y="218" width="150" height="40"/>
-              <text class="d-text" x="105" y="243" text-anchor="middle">apps · ZFS</text>
-              <rect class="d-node d-accent" x="220" y="218" width="150" height="40"/>
-              <text class="d-text" x="295" y="243" text-anchor="middle">Prometheus</text>
-              <line class="d-line" x1="105" y1="198" x2="105" y2="218"/>
+              <rect class="d-zone d-host d-tint" x="6" y="128" width="388" height="156"/>
+              <rect class="d-bar" x="6" y="128" width="388" height="20"/>
+              <text class="d-label" x="16" y="142">[doof:proxmox]</text>
+              <circle class="d-dot" cx="366" cy="138" r="2.5"/>
+              <circle class="d-dot" cx="376" cy="138" r="2.5"/>
+              <circle class="d-dot" cx="386" cy="138" r="2.5"/>
+              <rect class="d-node" x="30" y="162" width="150" height="40"/>
+              <text class="d-text" x="105" y="187" text-anchor="middle">NPM · TLS</text>
+              <circle class="d-ok" cx="170" cy="172" r="3.5"/>
+              <rect class="d-node" x="220" y="162" width="150" height="40"/>
+              <text class="d-text" x="295" y="187" text-anchor="middle">Pi-hole DNS</text>
+              <circle class="d-ok" cx="360" cy="172" r="3.5"/>
+              <rect class="d-node" x="30" y="220" width="150" height="40"/>
+              <text class="d-text" x="105" y="245" text-anchor="middle">apps · ZFS</text>
+              <circle class="d-ok" cx="170" cy="230" r="3.5"/>
+              <rect class="d-node d-accent" x="220" y="220" width="150" height="40"/>
+              <text class="d-text" x="295" y="245" text-anchor="middle">Prometheus</text>
+              <circle class="d-ok d-pulse" cx="360" cy="230" r="3.5"/>
+              <line class="d-line" x1="105" y1="202" x2="105" y2="220"/>
+              <text class="d-sub" x="112" y="215">https</text>
 
-              <rect class="d-zone" x="6" y="292" width="388" height="82"/>
-              <text class="d-label" x="18" y="312">LAN · VLANs + ACLs</text>
-              <rect class="d-node" x="22" y="324" width="110" height="36"/>
-              <text class="d-text" x="77" y="347" text-anchor="middle">admin</text>
-              <rect class="d-node" x="145" y="324" width="110" height="36"/>
-              <text class="d-text" x="200" y="347" text-anchor="middle">guest</text>
-              <rect class="d-node" x="268" y="324" width="110" height="36"/>
-              <text class="d-text" x="323" y="347" text-anchor="middle">IoT</text>
+              <rect class="d-zone" x="6" y="300" width="388" height="86"/>
+              <rect class="d-bar" x="6" y="300" width="388" height="20"/>
+              <text class="d-label" x="16" y="314">[lan · vlans + acls]</text>
+              <circle class="d-dot" cx="366" cy="310" r="2.5"/>
+              <circle class="d-dot" cx="376" cy="310" r="2.5"/>
+              <circle class="d-dot" cx="386" cy="310" r="2.5"/>
+              <rect class="d-node" x="22" y="332" width="110" height="40"/>
+              <text class="d-text" x="77" y="357" text-anchor="middle">admin</text>
+              <rect class="d-node" x="145" y="332" width="110" height="40"/>
+              <text class="d-text" x="200" y="357" text-anchor="middle">guest</text>
+              <rect class="d-node" x="268" y="332" width="110" height="40"/>
+              <text class="d-text" x="323" y="357" text-anchor="middle">IoT</text>
             </svg>
           </a>
           <figcaption><a href="/projects/doof-homelab.html">full diagram →</a></figcaption>
@@ -213,16 +234,16 @@
   <span class="note-meta">#postmortem · #dns #reverse-proxy · 2026-10-15</span>
 </li>
 <li>
+  <a href="/notes/monitoring-stack.html">Monitoring a Proxmox homelab with Prometheus and Grafana</a>
+  <span class="note-meta">#howto · #monitoring #proxmox · 2026-10</span>
+</li>
+<li>
   <a href="/notes/remote-access-cgnat.html">Remote access to a homelab with no public IP</a>
   <span class="note-meta">#howto · #networking #security #dns · 2026-09-16</span>
 </li>
 <li>
   <a href="/notes/console-outage.html">Postmortem: when every console said &quot;Connecting…&quot;</a>
   <span class="note-meta">#postmortem · #dns #reverse-proxy #proxmox · 2026-09-09</span>
-</li>
-<li>
-  <a href="/notes/pihole-across-vlans.html">Pi-hole answered one VLAN and ignored the rest</a>
-  <span class="note-meta">#notes · #dns #networking · 2026-04</span>
 </li>
 <!-- /build:notes -->
         </ul>
@@ -280,7 +301,7 @@
     <div class="status-right">
       <span class="status-stats">
         lab up <span data-uptime>—</span> ·
-        <!-- build:note-count -->5 notes
+        <!-- build:note-count -->8 notes
 <!-- /build:note-count --> ·
       </span>
       <button class="theme-toggle" type="button" data-theme-toggle aria-label="Toggle light or dark theme">theme</button>
