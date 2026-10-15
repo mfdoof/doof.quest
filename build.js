@@ -19,6 +19,10 @@ const SITE_DIR = path.join(ROOT, 'site');
 
 const CATEGORIES = ['infra', 'security', 'tools', 'writeups'];
 
+// write-ups: one type per note, plus 1-3 topics from this list
+const NOTE_TYPES = ['postmortem', 'howto', 'notes'];
+const NOTE_TOPICS = ['dns', 'reverse-proxy', 'proxmox', 'networking', 'monitoring', 'security', 'linux'];
+
 /* =========================================================================
  * 1. Helpers (done)
  * ========================================================================= */
@@ -123,6 +127,12 @@ function validate(content) {
       if (!n[field]) fail(`note "${n.slug || n.title}": missing "${field}"`);
     }
     if (!DATE.test(n.date)) fail(`note "${n.slug}": bad date "${n.date}" (use YYYY-MM-DD)`);
+    if (!NOTE_TYPES.includes(n.tag)) fail(`note "${n.slug}": tag "${n.tag}" must be one of ${NOTE_TYPES.join(', ')}`);
+    const topics = n.topics || [];
+    if (topics.length > 3) fail(`note "${n.slug}": max 3 topics`);
+    for (const t of topics) {
+      if (!NOTE_TOPICS.includes(t)) fail(`note "${n.slug}": unknown topic "${t}" (allowed: ${NOTE_TOPICS.join(', ')})`);
+    }
   }
 }
 
@@ -184,13 +194,19 @@ function renderCard(project) {
 </article>`;
 }
 
+/** "#type · #topic #topic · date" (also used on note pages) */
+function noteMeta(note) {
+  const topics = (note.topics || []).map((t) => `#${esc(t)}`).join(' ');
+  return [`#${esc(note.tag)}`, topics, esc(note.date)].filter(Boolean).join(' · ');
+}
+
 /** One <li> in .note-list (★ if pinned). */
 function renderNote(note) {
   const pinned = note.pinned ? ' class="pinned"' : '';
   return `
 <li>
   <a href="/notes/${esc(note.slug)}.html"${pinned}>${esc(note.title)}</a>
-  <span class="note-meta">#${esc(note.tag)} · ${esc(note.date)}</span>
+  <span class="note-meta">${noteMeta(note)}</span>
 </li>`;
 }
 
@@ -268,8 +284,15 @@ function main() {
     certs: certs.map(renderCert).join(''),
   });
 
-  for (const page of ['projects/doof-homelab.html', 'projects/password-manager.html', 'projects/net-health-monitor.html', 'notes/console-outage.html', 'notes/_template.html']) {
+  for (const page of ['projects/doof-homelab.html', 'projects/password-manager.html', 'projects/net-health-monitor.html', 'notes/_template.html']) {
     buildFile(page, shared);
+  }
+
+  // every note in content.json needs its page; the meta line comes from the JSON
+  for (const n of notes) {
+    const page = `notes/${n.slug}.html`;
+    if (!fs.existsSync(path.join(SITE_DIR, page))) fail(`note "${n.slug}": ${page} not found (copy notes/_template.html)`);
+    buildFile(page, { ...shared, 'note-meta': noteMeta(n) });
   }
 
   buildFile('projects/index.html', {

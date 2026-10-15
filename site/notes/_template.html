@@ -26,12 +26,13 @@
 
     <main id="main">
       <!-- Write-up template. Copy to notes/<slug>.html, add the note to content.json
-           and the page list in build.js. Keep only the sections that apply.
+           and the page list in build.js.
+           Type: postmortem | howto | notes. Topics (1-3): see NOTE_TOPICS in build.js. Keep only the sections that apply.
            No private IPs, internal hostnames or unfixed weaknesses. -->
       <article>
         <header class="page-head">
           <p class="crumbs mono small"><a href="/notes/">~/notes</a> / SLUG</p>
-          <div class="card-meta">#postmortem · YYYY-MM-DD</div>
+          <div class="card-meta"><!-- build:note-meta -->#TYPE · #topic · YYYY-MM-DD (filled by build)<!-- /build:note-meta --></div>
           <h1>TITLE</h1>
           <p class="lead">One or two sentences: what broke and why.</p>
         </header>
