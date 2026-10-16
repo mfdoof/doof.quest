@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Postmortem: every path returned 200 · doof.quest</title>
+  <meta name="description" content="A scanner asked for credential files and got 200 OK every time. Nothing leaked: Cloudflare Pages was serving the homepage for any path.">
+  <link rel="preload" href="/fonts/JetBrainsMono-Regular.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="/css/style.css?v=6c403054">
+  <script src="/js/main.js?v=73752b0e" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">skip to content</a>
+
+  <div class="container">
+    <header class="site-header">
+      <a class="prompt" href="/">mave@doof:~$</a>
+      <nav class="site-nav" aria-label="Main">
+        <a href="/projects/">./projects</a>
+        <a href="/notes/" aria-current="page">./notes</a>
+        <a href="/about.html">./about</a>
+        <a href="/resume.pdf" target="_blank" rel="noopener">resume.pdf</a>
+        <a href="#contact">./contact</a>
+      </nav>
+    </header>
+
+    <main id="main">
+      <article>
+        <header class="page-head">
+          <p class="crumbs mono small"><a href="/notes/">~/notes</a> / every-path-200</p>
+          <div class="card-meta"><!-- build:note-meta -->#postmortem · #security #dns · 2026-10-16
+<!-- /build:note-meta --></div>
+          <h1>Postmortem: every path returned 200</h1>
+          <p class="lead">A scanner asked my site for cloud credential files and got <code>200 OK</code> every time. Nothing leaked. The site was missing a 404 page, so Cloudflare Pages sent the homepage for any path.</p>
+        </header>
+        <div class="prose">
+          <h2 id="summary">$ cat summary</h2>
+          <p>While reading Cloudflare's traffic logs I found one IP asking for about 20 secret files in two seconds, like <code>/credentials.json</code> and <code>/service-account.json</code>. Every request came back <code>200 OK</code>. A size check showed each one was my homepage. Pages has a fallback for single-page apps: if a site has no <code>404.html</code>, every unknown path gets <code>index.html</code>. I added a 404 page and put Cloudflare rules in front of the site.</p>
+
+          <h2 id="impact">$ cat impact</h2>
+          <ul>
+            <li>No data was exposed. The site is static and has no secrets in it.</li>
+            <li>The logs were misleading. A <code>200</code> on <code>/credentials.json</code> looks like a breach until you check what was actually sent.</li>
+            <li>Scanners that see <code>200</code> on everything mark the site as interesting and come back.</li>
+          </ul>
+
+          <h2 id="investigation">$ cat investigation</h2>
+          <p>The requests came from a Google Cloud address. They asked for GCP service-account keys, Firebase admin keys and <code>phpinfo.php</code>, all within two seconds.</p>
+          <figure class="diagram">
+            <img src="/img/cf-credential-probes.webp" width="1346" height="738" loading="lazy" alt="Cloudflare traffic log. One source IP, blurred, requests paths like /firebase-key.json, /keyfile.json, /credentials.json, /gcp-sa.json and /includes/phpinfo.php within two seconds. Every request shows 200 OK.">
+            <figcaption>Twenty credential paths in two seconds, all <code>200 OK</code>. Source IP blurred.</figcaption>
+          </figure>
+          <p>A <code>200</code> says the server answered, not what it answered with. So I compared a probed path with the homepage:</p>
+          <pre><code>$ curl -s -o /dev/null -w "%{http_code} %{size_download} %{content_type}\n" https://doof.quest/credentials.json
+200 17421 text/html; charset=utf-8
+$ curl -s -o /dev/null -w "%{http_code} %{size_download} %{content_type}\n" https://doof.quest/
+200 17421 text/html; charset=utf-8</code></pre>
+          <p>Same size, same type, and the body was my homepage HTML. No file was served.</p>
+          <p>Then I sorted the week's traffic by source IP. The top one was a server hosted in France: about 3,000 requests in one burst, asking for <code>.github</code> files with the slashes and dots URL-encoded. Encoding is a trick to slip past simple path filters. Pages answered those with redirects and nothing reached a file.</p>
+          <figure class="diagram">
+            <img src="/img/cf-github-scanner.webp" width="1354" height="866" loading="lazy" alt="Cloudflare traffic for one source IP over seven days. A single spike of about 1,800 requests on October 12. The table shows encoded paths like /%2f%2egithub%2fissue_template and /%2f%2egithub%2ffunding.yml with 302 Found. The expanded event shows originResponseStatus 0 and country FR.">
+            <figcaption>One burst of about 3,000 requests for encoded <code>.github</code> paths. IP and request ID blurred.</figcaption>
+          </figure>
+
+          <h2 id="root-cause">$ cat root-cause</h2>
+          <p>The site had no <code>404.html</code>. When Cloudflare Pages can't find one, it assumes the site is a single-page app and returns <code>index.html</code> with status <code>200</code> for any path that doesn't exist. That's useful for a React app with client-side routes. For plain HTML pages it means every missing file looks like it exists.</p>
+
+          <h2 id="fix">$ cat fix</h2>
+          <ul>
+            <li>Added <code>site/404.html</code> in the site's terminal style, marked noindex. Pages now returns a real <code>404</code> for anything that doesn't exist.</li>
+            <li>Added Cloudflare rules so probes are stopped before they reach Pages. The <a href="/notes/cloudflare-free-hardening.html">hardening how-to</a> covers those.</li>
+          </ul>
+          <pre><code>$ curl -s -o /dev/null -w "%{http_code}\n" https://doof.quest/notes/nope.html
+404</code></pre>
+
+          <h2 id="lessons">$ cat lessons</h2>
+          <ul>
+            <li><strong>A 200 isn't proof a file exists.</strong> Check the size and content type before deciding something leaked.</li>
+            <li><strong>Know your host's defaults.</strong> The SPA fallback was a Pages default I never chose.</li>
+            <li><strong>Read the logs even when nothing is broken.</strong> The site worked fine. Only the logs showed the problem.</li>
+          </ul>
+        </div>
+      </article>
+    </main>
+
+    <footer class="site-footer" id="contact">
+      <nav aria-label="Contact">
+        <!-- build:footer-links --><a href="mailto:maveealier@gmail.com">mail</a>
+<a href="https://github.com/mfdoof" rel="noopener">github</a>
+<a href="https://www.linkedin.com/in/mave-alier-5499283b2/" rel="noopener">linkedin</a>
+<!-- /build:footer-links -->
+      </nav>
+      <nav aria-label="Site">
+        <a href="/notes/how-this-site-works.html">how-this-site-works.md</a>
+        <!-- add back when built: <a href="/shell/">try the shell &gt;_</a> -->
+      </nav>
+    </footer>
+  </div>
+
+  <div class="statusbar">
+    <nav class="status-left" aria-label="Windows">
+      [doof]
+      <a href="/">0:home</a>
+      <a href="/projects/">1:projects</a>
+      <a href="/notes/" aria-current="page">2:notes*</a>
+      <a href="/about.html">3:about</a>
+    </nav>
+    <div class="status-right">
+      <span class="status-stats">
+        lab up <span data-uptime>—</span> ·
+        <!-- build:note-count -->11 notes
+<!-- /build:note-count --> ·
+      </span>
+      <button class="theme-toggle" type="button" data-theme-toggle aria-label="Toggle light or dark theme">theme</button>
+    </div>
+  </div>
+</body>
+</html>

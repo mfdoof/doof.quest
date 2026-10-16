@@ -93,6 +93,25 @@
         "href": "/projects/net-health-monitor.html"
       },
       "repo": "https://github.com/mfdoof/network-health-monitor"
+    },
+    {
+      "slug": "mac-lab",
+      "title": "mac-lab",
+      "category": "infra",
+      "perms": "drwxr-xr-x",
+      "date": "2026-09-16",
+      "blurb": "Set up and documented a 30-Mac teaching lab during my internship: naming, static IPs, MDM enrollment, updates and a local update cache.",
+      "stack": [
+        "macOS",
+        "Mosyle MDM",
+        "bash"
+      ],
+      "image": "/img/mac-lab-install.webp",
+      "imageAlt": "Two lab Mac minis running the macOS installer",
+      "link": {
+        "label": "cat README",
+        "href": "/projects/mac-lab.html"
+      }
     }
   ],
   "notes": [
@@ -187,6 +206,25 @@
         "security"
       ],
       "date": "2026-10-15"
+    },
+    {
+      "slug": "every-path-200",
+      "title": "Postmortem: every path returned 200",
+      "tag": "postmortem",
+      "topics": [
+        "security",
+        "dns"
+      ],
+      "date": "2026-10-16"
+    },
+    {
+      "slug": "cloudflare-free-hardening",
+      "title": "Hardening a static site on Cloudflare's free plan",
+      "tag": "howto",
+      "topics": [
+        "security"
+      ],
+      "date": "2026-10-16"
     }
   ],
   "about": [

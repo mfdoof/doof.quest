@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Hardening a static site on Cloudflare's free plan · doof.quest</title>
+  <meta name="description" content="A 404 page, an allowlist rule, a cloud host challenge and a rate limit on Cloudflare free plan.">
+  <link rel="preload" href="/fonts/JetBrainsMono-Regular.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="/css/style.css?v=6c403054">
+  <script src="/js/main.js?v=73752b0e" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">skip to content</a>
+
+  <div class="container">
+    <header class="site-header">
+      <a class="prompt" href="/">mave@doof:~$</a>
+      <nav class="site-nav" aria-label="Main">
+        <a href="/projects/">./projects</a>
+        <a href="/notes/" aria-current="page">./notes</a>
+        <a href="/about.html">./about</a>
+        <a href="/resume.pdf" target="_blank" rel="noopener">resume.pdf</a>
+        <a href="#contact">./contact</a>
+      </nav>
+    </header>
+
+    <main id="main">
+      <article>
+        <header class="page-head">
+          <p class="crumbs mono small"><a href="/notes/">~/notes</a> / cloudflare-free-hardening</p>
+          <div class="card-meta"><!-- build:note-meta -->#howto · #security · 2026-10-16
+<!-- /build:note-meta --></div>
+          <h1>Hardening a static site on Cloudflare's free plan</h1>
+          <p class="lead">After a scanner probed this site for credential files, I set up four layers on Cloudflare's free plan: a real 404 page, an allowlist, a challenge for cloud hosts and a rate limit.</p>
+        </header>
+        <div class="prose">
+          <h2 id="goal">$ cat goal</h2>
+          <p>Stop scanners before they reach the site, without upkeep and without getting in the way of real visitors. The <a href="/notes/every-path-200.html">postmortem</a> explains what started this.</p>
+
+          <h2 id="design">$ cat design</h2>
+          <ul>
+            <li><strong>404 page.</strong> Pages returns a real <code>404</code> for missing paths, so there's nothing to find.</li>
+            <li><strong>Allowlist rule.</strong> A custom WAF rule blocks any path that isn't part of the site: the homepage, about, resume, and the notes, projects and asset folders.</li>
+            <li><strong>Cloud host challenge.</strong> Requests from big hosting providers get a Managed Challenge. Verified bots like search crawlers skip it.</li>
+            <li><strong>Rate limit.</strong> An IP that asks for too many pages in ten seconds is blocked for a short time. Asset files don't count.</li>
+            <li><strong>Bot Fight Mode</strong> is on as well.</li>
+          </ul>
+          <figure class="diagram">
+            <img src="/img/cf-security-rules.webp" width="1298" height="640" loading="lazy" alt="Cloudflare Security rules page. Two custom rules: Block scanners with action Block, and Challenge cloud hosts with action Managed Challenge. One rate limiting rule: Rate limit bursts, action Block, status Active. The rule descriptions are blurred.">
+            <figcaption>The three rules. Expressions blurred.</figcaption>
+          </figure>
+
+          <h2 id="decisions">$ cat decisions</h2>
+          <ul>
+            <li><strong>Allowlist over blocklist.</strong> My first rule listed bad paths like <code>.env</code> and <code>.git</code>. Scanners change paths all the time, so that list would never be done. The site has a small, known set of paths, so listing those is easier and catches probes I haven't seen yet.</li>
+            <li><strong>Challenge, not block, for cloud hosts.</strong> Some real people browse from those networks, like VPN users or someone on a work VPN. A challenge lets a person through in a second or two. Scripts can't pass it.</li>
+            <li><strong>Leave crawlers alone.</strong> I almost included Google's own network in the list, which would have challenged Googlebot. The rule now skips verified bots, so search crawlers and link previews on LinkedIn or Slack still work.</li>
+            <li><strong>Swapped a rule I didn't need.</strong> The free plan's one rate limiting rule came set up for leaked password checks. This site has no login, so I used the slot for bursts.</li>
+          </ul>
+
+          <h2 id="gotchas">$ cat gotchas</h2>
+          <ul>
+            <li><strong>Pages drops <code>.html</code>.</strong> <code>/about.html</code> redirects to <code>/about</code>, so the allowlist needs both.</li>
+            <li><strong>New paths need adding.</strong> A new top-level page or folder gets a <code>403</code> until it's in the rule.</li>
+            <li><strong>Free plan limits.</strong> One rate limiting rule, and the counting window and block time are fixed at ten seconds.</li>
+          </ul>
+
+          <h2 id="verify">$ cat verify</h2>
+          <pre><code>$ curl -s -o /dev/null -w "%{http_code}\n" https://doof.quest/notes/nope.html
+404
+$ curl -s -o /dev/null -w "%{http_code}\n" https://doof.quest/credentials.json
+403
+$ for i in $(seq 1 30); do curl -s -o /dev/null -w "%{http_code} " https://doof.quest/; done; echo
+200 200 200 200 200 200 200 200 200 200 200 200 200 200 200 200 200 200 200 200 429 429 429 429 429 429 429 429 429 429</code></pre>
+          <p>The encoded <code>.github</code> paths from the earlier scan now get <code>403</code> as well.</p>
+
+          <h2 id="lessons">$ cat lessons</h2>
+          <ul>
+            <li><strong>Allowlists scale, blocklists don't.</strong> When the set of good paths is small, list those.</li>
+            <li><strong>Think about who else a rule hits.</strong> Every rule has a cost for someone. Check that before deploying it.</li>
+            <li><strong>The free plan is enough for a static site.</strong> The 404 page does most of the work. The rules keep the noise down.</li>
+          </ul>
+        </div>
+      </article>
+    </main>
+
+    <footer class="site-footer" id="contact">
+      <nav aria-label="Contact">
+        <!-- build:footer-links --><a href="mailto:maveealier@gmail.com">mail</a>
+<a href="https://github.com/mfdoof" rel="noopener">github</a>
+<a href="https://www.linkedin.com/in/mave-alier-5499283b2/" rel="noopener">linkedin</a>
+<!-- /build:footer-links -->
+      </nav>
+      <nav aria-label="Site">
+        <a href="/notes/how-this-site-works.html">how-this-site-works.md</a>
+        <!-- add back when built: <a href="/shell/">try the shell &gt;_</a> -->
+      </nav>
+    </footer>
+  </div>
+
+  <div class="statusbar">
+    <nav class="status-left" aria-label="Windows">
+      [doof]
+      <a href="/">0:home</a>
+      <a href="/projects/">1:projects</a>
+      <a href="/notes/" aria-current="page">2:notes*</a>
+      <a href="/about.html">3:about</a>
+    </nav>
+    <div class="status-right">
+      <span class="status-stats">
+        lab up <span data-uptime>—</span> ·
+        <!-- build:note-count -->11 notes
+<!-- /build:note-count --> ·
+      </span>
+      <button class="theme-toggle" type="button" data-theme-toggle aria-label="Toggle light or dark theme">theme</button>
+    </div>
+  </div>
+</body>
+</html>
